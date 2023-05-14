@@ -1,10 +1,13 @@
-import { BinaryTree } from "./BinaryTree";
-import { VoxelStorageComparator } from "./VoxelStorageComparator";
+import { BinaryTree } from "./BinaryTree.js";
+import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 export class VoxelStorageNode {
     data;
     binarySubtree = new BinaryTree(undefined, new VoxelStorageComparator());
     constructor(data) {
         this.data = data;
+    }
+    getBinarySubTreeRoot() {
+        return this.binarySubtree.getRoot();
     }
     removeItem(numberToRemove) {
         return this.binarySubtree.removeItem(new VoxelStorageNode(numberToRemove));
@@ -15,10 +18,19 @@ export class VoxelStorageNode {
     getItem(numberToCheck) {
         return this.binarySubtree.getItem(new VoxelStorageNode(numberToCheck));
     }
+    hasItem(numberToCheck) {
+        return this.binarySubtree.hasItem(new VoxelStorageNode(numberToCheck));
+    }
+    getBinarySubTree() {
+        return this.binarySubtree;
+    }
+    getData() {
+        return this.data;
+    }
     preHash() {
-        this.data;
+        return this.data;
     }
     toPrint() {
-        return `${this.data}, SubNodes: ${this.binarySubtree.size()}`;
+        return `Data: ${this.data}, SubNodes: ${this.binarySubtree.size()}`;
     }
 }

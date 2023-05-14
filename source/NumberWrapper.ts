@@ -1,4 +1,4 @@
-import { ValidObject} from "./ValidObject"
+import { ValidObject} from "./ValidObject.js"
 
 export class NumberWrapper implements ValidObject {
    data: number;

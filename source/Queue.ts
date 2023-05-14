@@ -1,5 +1,5 @@
-import { DoublyLinkedList } from "./DoublyLinkedList";
-import { ValidObject } from "./ValidObject";
+import { DoublyLinkedList } from "./DoublyLinkedList.js";
+import { ValidObject } from "./ValidObject.js";
 
 export class Queue<E extends ValidObject> implements ValidObject {
    private list: DoublyLinkedList<E> = new DoublyLinkedList<E>();

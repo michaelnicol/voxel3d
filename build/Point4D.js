@@ -1,13 +1,15 @@
-export class Point3D {
+export class Point4D {
     x;
     y;
     z;
+    t;
     arr;
-    constructor(x, y, z) {
+    constructor(x, y, z, t) {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.arr = [x, y, z];
+        this.t = t;
+        this.arr = [x, y, z, t];
     }
     preHash() {
         return this.arr.join(",");

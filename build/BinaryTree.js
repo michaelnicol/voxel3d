@@ -1,4 +1,4 @@
-import { BinaryTreeNode } from "./BinaryTreeNode";
+import { BinaryTreeNode } from "./BinaryTreeNode.js";
 export class BinaryTree {
     comparator;
     root = undefined;
@@ -13,6 +13,9 @@ export class BinaryTree {
     // Interfaces
     preHash() {
         return this;
+    }
+    getRoot() {
+        return this.root;
     }
     removeItem(value) {
         console.log("Removing value: " + value.toPrint());
@@ -98,6 +101,9 @@ export class BinaryTree {
     getItem(value) {
         return this.hashMap.get(value.preHash());
     }
+    hasItem(value) {
+        return this.hashMap.has(value.preHash());
+    }
     addItem(value) {
         if (value === undefined) {
             throw new Error("Undefined Value to Add");
@@ -108,7 +114,7 @@ export class BinaryTree {
             this.hashMap.set(value.preHash(), newNode);
             return this.root;
         }
-        if (this.hashMap.get(value.preHash()) == undefined) {
+        if (!this.hashMap.has(value.preHash())) {
             this.hashMap.set(value.preHash(), newNode);
         }
         else {
@@ -158,5 +164,8 @@ export class BinaryTree {
     }
     toPrint(repeat = true) {
         return this.root === undefined ? "undefined" : this.toPrintDPS(this.root, "", 0, repeat);
+    }
+    getHashMap() {
+        return this.hashMap;
     }
 }

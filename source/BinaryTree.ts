@@ -1,6 +1,6 @@
-import { Comparator } from "./Comparator";
-import { ValidObject } from "./ValidObject";
-import { BinaryTreeNode } from "./BinaryTreeNode";
+import { Comparator } from "./Comparator.js";
+import { ValidObject } from "./ValidObject.js";
+import { BinaryTreeNode } from "./BinaryTreeNode.js";
 export class BinaryTree<E extends ValidObject> implements ValidObject {
   private comparator: Comparator<E>;
   private root: BinaryTreeNode<E> | undefined = undefined;
@@ -15,8 +15,12 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
 
   // Interfaces
 
-  preHash() {
+  preHash(): BinaryTree<E> {
     return this;
+  }
+
+  public getRoot(): BinaryTreeNode<E> | undefined {
+    return this.root;
   }
 
   public removeItem(value: E): BinaryTreeNode<E> | undefined {
@@ -90,6 +94,9 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
   public getItem(value: E): BinaryTreeNode<E> | undefined {
     return this.hashMap.get(value.preHash());
   }
+  public hasItem(value: E): boolean {
+    return this.hashMap.has(value.preHash());
+  }
   public addItem(value: E): BinaryTreeNode<E> {
     if (value === undefined) {
       throw new Error("Undefined Value to Add");
@@ -100,7 +107,7 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
       this.hashMap.set(value.preHash(), newNode);
       return this.root;
     }
-    if (this.hashMap.get(value.preHash()) == undefined) {
+    if (!this.hashMap.has(value.preHash())) {
       this.hashMap.set(value.preHash(), newNode);
     } else {
       this.hashMap.get(value.preHash())?.increaseAmount();
@@ -145,5 +152,8 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
   }
   toPrint(repeat: boolean = true): string {
     return this.root === undefined ? "undefined" : this.toPrintDPS(this.root as BinaryTreeNode<E>, "", 0, repeat);
+  }
+  getHashMap(): Map<E, BinaryTreeNode<E>> { 
+    return this.hashMap;
   }
 }

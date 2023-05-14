@@ -23,7 +23,7 @@ export class BinaryTreeNode {
         if (this.hasParent()) {
             parentPrint = this.getParent()?.getValue() === undefined ? parentPrint : this.getParent()?.getValue()?.toPrint();
         }
-        return `<L: ${leftPrint}, P: ${parentPrint}, V: ${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}, A: ${this.amount}, R: ${rightPrint}>`;
+        return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}>`;
     }
     // Interface
     preHash() {

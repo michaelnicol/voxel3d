@@ -1,4 +1,4 @@
-import { ValidObject } from "./ValidObject";
+import { ValidObject } from "./ValidObject.js";
 export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
   private left?: BinaryTreeNode<E>;
   private right?: BinaryTreeNode<E>;
@@ -25,7 +25,7 @@ export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
     if (this.hasParent()) {
       parentPrint = this.getParent()?.getValue() === undefined ? parentPrint : (this.getParent()?.getValue()?.toPrint() as string);
     }
-    return `<L: ${leftPrint}, P: ${parentPrint}, V: ${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}, A: ${this.amount}, R: ${rightPrint}>`
+    return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}>`
   }
 
   // Interface

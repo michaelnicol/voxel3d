@@ -1,7 +1,7 @@
-import { BinaryTree } from "./BinaryTree";
-import { ValidObject } from "./ValidObject";
-import { BinaryTreeNode } from "./BinaryTreeNode";
-import { VoxelStorageComparator } from "./VoxelStorageComparator";
+import { BinaryTree } from "./BinaryTree.js";
+import { ValidObject } from "./ValidObject.js";
+import { BinaryTreeNode } from "./BinaryTreeNode.js";
+import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 
 export class VoxelStorageNode implements ValidObject {
    data: number;
@@ -9,6 +9,10 @@ export class VoxelStorageNode implements ValidObject {
    constructor(data: number) {
       this.data = data;
    }
+   getBinarySubTreeRoot(): BinaryTreeNode<VoxelStorageNode> | undefined {
+      return this.binarySubtree.getRoot();
+   }
+
    removeItem(numberToRemove: number): BinaryTreeNode<VoxelStorageNode> | undefined {
       return this.binarySubtree.removeItem(new VoxelStorageNode(numberToRemove));
    }
@@ -21,10 +25,22 @@ export class VoxelStorageNode implements ValidObject {
       return this.binarySubtree.getItem(new VoxelStorageNode(numberToCheck));
    }
 
-   preHash() {
-       this.data;
+   hasItem(numberToCheck: number): boolean {
+      return this.binarySubtree.hasItem(new VoxelStorageNode(numberToCheck));
+   }
+
+   getBinarySubTree(): BinaryTree<VoxelStorageNode> {
+      return this.binarySubtree;
+   }
+
+   getData(): number {
+      return this.data;
+   }
+
+   preHash(): number {
+      return this.data;
    }
    toPrint(): string {
-       return `${this.data}, SubNodes: ${this.binarySubtree.size()}`
+       return `Data: ${this.data}, SubNodes: ${this.binarySubtree.size()}`
    }
 }

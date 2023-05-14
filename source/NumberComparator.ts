@@ -1,5 +1,5 @@
-import { Comparator } from "./Comparator";
-import {NumberWrapper } from "./NumberWrapper";
+import { Comparator } from "./Comparator.js";
+import {NumberWrapper } from "./NumberWrapper.js";
 
 export class NumberComparator implements Comparator<NumberWrapper> {
   compare(o1: NumberWrapper, o2: NumberWrapper): number {
