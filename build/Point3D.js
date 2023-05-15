@@ -1,13 +1,14 @@
 export class Point3D {
-    x;
-    y;
-    z;
+    dimensions = new Map;
     arr;
     constructor(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.dimensions.set("x", x);
+        this.dimensions.set("y", x);
+        this.dimensions.set("z", x);
         this.arr = [x, y, z];
+    }
+    getCoordinateValue(key) {
+        return this.dimensions.get(key.toLowerCase());
     }
     preHash() {
         return this.arr.join(",");
@@ -17,5 +18,8 @@ export class Point3D {
     }
     dimensionCount() {
         return this.arr.length;
+    }
+    clone() {
+        return new Point3D(this.arr[0], this.arr[1], this.arr[2]);
     }
 }

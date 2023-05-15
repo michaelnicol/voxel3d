@@ -19,6 +19,28 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
     return this;
   }
 
+  public getLowestValue(): BinaryTreeNode<E> | undefined {
+    if (this.root === undefined) {
+      throw new Error("Can not find lowest value with undefined root");
+    }
+    let current: BinaryTreeNode<E> = this.root as BinaryTreeNode<E>;
+    while (current.hasLeft()) {
+      current = current.getLeft() as BinaryTreeNode<E>;
+    }
+    return current;
+  }
+
+  public getHighestValue(): BinaryTreeNode<E> | undefined {
+    if (this.root === undefined) {
+      throw new Error("Can not find highest value with undefined root");
+    }
+    let current: BinaryTreeNode<E> = this.root as BinaryTreeNode<E>;
+    while (current.hasRight()) {
+      current = current.getRight() as BinaryTreeNode<E>;
+    }
+    return current;
+  }
+
   public getRoot(): BinaryTreeNode<E> | undefined {
     return this.root;
   }
@@ -153,7 +175,7 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
   toPrint(repeat: boolean = true): string {
     return this.root === undefined ? "undefined" : this.toPrintDPS(this.root as BinaryTreeNode<E>, "", 0, repeat);
   }
-  getHashMap(): Map<E, BinaryTreeNode<E>> { 
+  getHashMap(): Map<E, BinaryTreeNode<E>> {
     return this.hashMap;
   }
 }

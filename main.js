@@ -9,14 +9,14 @@ import { Point3D } from "./build/Point3D.js"
 
 let tree = new VoxelStorage(3);
 
-let point = new Point3D(1,2,3);
-let point3 = new Point3D(4,5,6);
-let point4 = new Point3D(7,8,9);
+const min = 10;
+const max = 0;
 
-tree.addCoordinate(point);
-tree.addCoordinate(point3);
-tree.addCoordinate(point4);
+for (let i = 0; i < 100000; i++) {
+   tree.addCoordinate(new Point3D(Math.floor(Math.random() * (max - min) + min), Math.floor(Math.random() * (max - min) + min), Math.floor(Math.random() * (max - min) + min)))
+}
 
+console.log(JSON.stringify(tree.getCoordinateList()))
 
 // console.log(tree.root.getItem(new VoxelStorageNode(1)).root);
 

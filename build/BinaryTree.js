@@ -14,6 +14,26 @@ export class BinaryTree {
     preHash() {
         return this;
     }
+    getLowestValue() {
+        if (this.root === undefined) {
+            throw new Error("Can not find lowest value with undefined root");
+        }
+        let current = this.root;
+        while (current.hasLeft()) {
+            current = current.getLeft();
+        }
+        return current;
+    }
+    getHighestValue() {
+        if (this.root === undefined) {
+            throw new Error("Can not find highest value with undefined root");
+        }
+        let current = this.root;
+        while (current.hasRight()) {
+            current = current.getRight();
+        }
+        return current;
+    }
     getRoot() {
         return this.root;
     }
