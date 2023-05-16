@@ -5,8 +5,8 @@ export class Point3D implements Point {
   public arr: number[];
   constructor(x: number, y: number, z: number) {
     this.dimensions.set("x", x);
-    this.dimensions.set("y", x);
-    this.dimensions.set("z", x);
+    this.dimensions.set("y", y);
+    this.dimensions.set("z", z);
     this.arr = [x, y, z];
   }
   getCoordinateValue(key: string): number | undefined {
@@ -20,6 +20,9 @@ export class Point3D implements Point {
   }
   dimensionCount(): number {
     return this.arr.length;
+  }
+  factoryMethod(dimensionValues: number[]): Point3D {
+    return new Point3D(dimensionValues[0], dimensionValues[1], dimensionValues[2])
   }
   clone(): Point3D {
     return new Point3D(this.arr[0], this.arr[1], this.arr[2]);

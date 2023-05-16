@@ -46,7 +46,6 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
   }
 
   public removeItem(value: E): BinaryTreeNode<E> | undefined {
-    console.log("Removing value: " + value.toPrint())
     if (this.getItem(value) == undefined) {
       throw new Error("Removing value not in tree");
     } else {
@@ -55,7 +54,6 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
       if (nodeToRemove.getAmount() != 0) {
         return nodeToRemove;
       } else if (nodeToRemove.hasRight() && nodeToRemove.hasLeft()) {
-        console.log("nodeToRemove.hasRight() && nodeToRemove.hasLeft()")
         let subTreeParentReference = nodeToRemove === this.root ? this.root as BinaryTreeNode<E> : nodeToRemove.getParent() as BinaryTreeNode<E>;
         let rightNode = nodeToRemove.getRight();
         let leftMostNode: BinaryTreeNode<E> | undefined = rightNode?.getLeft();
@@ -74,7 +72,6 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
           }
         }
       } else if (nodeToRemove.hasRight() && !nodeToRemove.hasLeft()) {
-        console.log("nodeToRemove.hasRight() && !nodeToRemove.hasLeft()")
         let subTreeParentReference = nodeToRemove === this.root ? this.root as BinaryTreeNode<E> : nodeToRemove.getParent() as BinaryTreeNode<E>;
         if (nodeToRemove === this.root) {
           this.root = nodeToRemove.getRight();
@@ -86,7 +83,6 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
           }
         }
       } else if (!nodeToRemove.hasRight() && nodeToRemove.hasLeft()) {
-        console.log("!nodeToRemove.hasRight() && nodeToRemove.hasLeft()")
         let subTreeParentReference = nodeToRemove === this.root ? this.root as BinaryTreeNode<E> : nodeToRemove.getParent() as BinaryTreeNode<E>;
         if (nodeToRemove === this.root) {
           this.root = nodeToRemove.getLeft();
@@ -98,10 +94,8 @@ export class BinaryTree<E extends ValidObject> implements ValidObject {
           }
         }
       } else if (!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove === this.root) {
-        console.log("!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove === this.root")
         this.root = undefined;
       } else if (!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove.getParent() != undefined) {
-        console.log("!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove.getParent() != undefined")
         const subTreeParentReference = (nodeToRemove.getParent() as BinaryTreeNode<E>);
         if (subTreeParentReference.getLeft() === nodeToRemove) {
           subTreeParentReference.setLeft(undefined);

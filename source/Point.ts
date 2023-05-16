@@ -5,4 +5,5 @@ export interface Point extends ValidObject, cloneable<Point> {
    dimensions: Map<string, number>;
    arr: number[];
    dimensionCount(): number;
+   factoryMethod(dimensionValues: number[]): Point;
 }

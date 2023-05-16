@@ -5,13 +5,14 @@ import { Point3D } from "./Point3D.js";
 export class VoxelStorage {
     dimensionRange = new Map();
     root = new BinaryTree(undefined, new VoxelStorageComparator());
-    maxDepth = -1;
-    constructor(maxDepth) {
-        if (maxDepth < 1) {
+    maxDimensions = -1;
+    coordinateCount = 0;
+    constructor(maxDimensions) {
+        if (maxDimensions < 1) {
             throw new Error("Invalid Depth: Can not be less than 1");
         }
-        this.maxDepth = maxDepth;
-        for (let i = 0; i < this.maxDepth; i++) {
+        this.maxDimensions = maxDimensions;
+        for (let i = 0; i < this.maxDimensions; i++) {
             this.dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
         }
     }
@@ -60,7 +61,7 @@ export class VoxelStorage {
             let leftSubTree = currentNode.getLeft();
             this.findRangeRecursiveCall(leftSubTree, range, depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
         }
-        if (depth < limitingDepth) {
+        if (depth < (!useInclusiveRanges ? limitingDepth : this.maxDimensions - 1)) {
             let downwardSubTree = currentNode.getValue().getBinarySubTreeRoot();
             this.findRangeRecursiveCall(downwardSubTree, range, ++depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
         }
@@ -68,12 +69,12 @@ export class VoxelStorage {
     findRangeInclusive(inclusiveRange, range) {
         return this.#findRange(true, inclusiveRange, -1, range);
     }
-    findRangeExclusive(maxDepth, range) {
-        return this.#findRange(true, [], maxDepth, range);
+    findRangeExclusive(maxDimensions, range) {
+        return this.#findRange(true, [], maxDimensions, range);
     }
     #findRange(useInclusive, inclusiveRange, exclusiveDepth, range) {
-        if (exclusiveDepth > this.maxDepth) {
-            throw new Error(`Invalid tree height for range call: ${exclusiveDepth} greater than this.maxDepth ${this.maxDepth}`);
+        if (exclusiveDepth > this.maxDimensions) {
+            throw new Error(`Invalid tree height for range call: ${exclusiveDepth} greater than this.maxDimensions ${this.maxDimensions}`);
         }
         range = range === undefined ? new Map() : range;
         if (!useInclusive) {
@@ -83,7 +84,7 @@ export class VoxelStorage {
         }
         else {
             inclusiveRange = inclusiveRange?.sort((a, b) => b - a);
-            if (inclusiveRange[0] > this.maxDepth) {
+            if (inclusiveRange[0] > this.maxDimensions) {
                 throw new Error(`Inclusive Ranges depth too large: ${JSON.stringify(range)}`);
             }
             for (let i = 0; i < inclusiveRange.length; i++) {
@@ -91,11 +92,15 @@ export class VoxelStorage {
                 range.set(rangeNumber, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
             }
         }
+        console.log(this.dimensionRange);
+        if (this.coordinateCount === 0) {
+            return range;
+        }
         this.findRangeRecursiveCall(this.root.getRoot(), range, 0, exclusiveDepth, useInclusive, inclusiveRange);
         return range;
     }
-    getMaxDepth() {
-        return this.maxDepth;
+    getmaxDimensions() {
+        return this.maxDimensions;
     }
     hasCoordinate(coordinate) {
         const { arr } = coordinate;
@@ -115,22 +120,23 @@ export class VoxelStorage {
         return true;
     }
     addCoordinate(coordinate) {
+        this.coordinateCount += 1;
         const { arr } = coordinate;
         var currentNode;
         for (let i = 0; i < arr.length; i++) {
             const range = this.dimensionRange.get(i);
-            if (i < range[0]) {
-                range[0] = i;
+            if (arr[i] < range[0]) {
+                range[0] = arr[i];
                 range[1] = 1;
             }
-            if (i === range[0]) {
+            else if (arr[i] === range[0]) {
                 range[1] += 1;
             }
-            if (i > range[2]) {
-                range[2] = i;
+            if (arr[i] > range[2]) {
+                range[2] = arr[i];
                 range[3] = 1;
             }
-            if (i === range[2]) {
+            else if (arr[i] === range[2]) {
                 range[3] += 1;
             }
             const nodeToAdd = new VoxelStorageNode(arr[i]);
@@ -148,6 +154,7 @@ export class VoxelStorage {
         }
     }
     removeCoordinate(coordinate) {
+        this.coordinateCount -= 1;
         if (!this.hasCoordinate(coordinate)) {
             throw new Error("Coordinate does not exist");
         }
@@ -187,10 +194,10 @@ export class VoxelStorage {
             let leftSubTree = currentNode.getLeft();
             this.#getCoordinatesRecursiveCall(leftSubTree, [...currentCoordinate], allCoordinates, depth);
         }
-        if (depth >= this.maxDepth) {
+        if (depth >= this.maxDimensions) {
             currentCoordinate.push(currentNode.getValue().getData());
             for (let i = currentNode.getAmount(); i > 0; i--) {
-                // allCoordinates.push((new this.construct(...currentCoordinate)));
+                // allCoordinates.push((new E().factoryMethod(...currentCoordinate)));
             }
             return;
         }
@@ -208,9 +215,9 @@ export class VoxelStorage {
         this.#getCoordinatesRecursiveCall(this.root.getRoot(), [], allCoordinates, 1);
         return allCoordinates;
     }
-    getBoundingBox() {
-        if (this.maxDepth < 3) {
-            throw new Error("Storage tree depth is less than 3: " + this.maxDepth);
+    getBoundingBox3D() {
+        if (this.maxDimensions < 3) {
+            throw new Error("Storage tree depth is less than 3: " + this.maxDimensions);
         }
         let xRange = this.dimensionRange.get(0);
         let yRange = this.dimensionRange.get(1);
