@@ -3,12 +3,41 @@ import { ValidObject } from "./ValidObject.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 
 export class BaseObject<E extends Point> implements ValidObject {
-    voxelStorage!: VoxelStorage<E>;
+    private voxelStorage!: VoxelStorage<E>;
     pointFactoryMethod: Function;
     constructor(dimensionCount: number, pointFactoryMethod: Function) {
         this.pointFactoryMethod = pointFactoryMethod;
         this.voxelStorage = new VoxelStorage<E>(dimensionCount, pointFactoryMethod)
     }
+
+    getMaxDimensions(): number {
+        return this.voxelStorage.getMaxDimensions();
+    }
+
+    getCoordinateCount(): number {
+        return this.voxelStorage.getCoordinateCount();
+    }
+
+    getVoxels(): E[] {
+        return this.voxelStorage.getCoordinateList();
+    }
+
+    addVoxels(coordinatesToAdd: E[]): BaseObject<E> {
+        for (const p of coordinatesToAdd) {
+            this.voxelStorage.addCoordinate(p);
+        }
+        return this;
+    }
+
+    removeVoxels(coordinatesToRemove: E[]): BaseObject<E> {
+        const rangesToUpdate: number[] = [];
+        for (const p of coordinatesToRemove) {
+            rangesToUpdate.push(...this.voxelStorage.removeCoordinate(p))
+        }
+        this.voxelStorage.findRangeInclusive(rangesToUpdate, this.voxelStorage.dimensionRange);
+        return this;
+    }
+
     preHash() {
         return this;
     }
@@ -23,10 +52,16 @@ export class BaseObject<E extends Point> implements ValidObject {
         const endPoint: number[] = p2.arr;
         const currentPoint: number[] = [...startPoint];
         const differences: number[] = []
+        const increments: number[] = []
         let indexOfGreatest: number = 0;
         const dimensions = p1.dimensionCount();
         for (let i = 0; i < dimensions; i++) {
             differences.push(Math.abs(endPoint[i] - startPoint[i]));
+            if (endPoint[i] - startPoint[i] < 0) {
+                increments.push(-1);
+            } else {
+                increments.push(1);
+            }
             if (differences[i] > differences[indexOfGreatest]) {
                 indexOfGreatest = i;
             }
@@ -36,7 +71,10 @@ export class BaseObject<E extends Point> implements ValidObject {
         for (let i = 0; i < dimensions; i++) {
             steppingValues.push(2 * differences[i] - differences[indexOfGreatest]);
         }
-        while (currentPoint[indexOfGreatest] <= endPoint[indexOfGreatest]) {
+        while (true) {
+            if (!(startPoint[indexOfGreatest] < endPoint[indexOfGreatest] ? (currentPoint[indexOfGreatest] <= endPoint[indexOfGreatest]) : (currentPoint[indexOfGreatest] >= endPoint[indexOfGreatest]))) {
+                return coordinates;
+            }
             coordinates.push(p1.factoryMethod([...currentPoint]));
             for (let i = 0; i < dimensions; i++) {
                 if (i === indexOfGreatest) {
@@ -45,12 +83,11 @@ export class BaseObject<E extends Point> implements ValidObject {
                 else if (steppingValues[i] < 0) {
                     steppingValues[i] += (2 * differences[i]);
                 } else {
-                    currentPoint[i] += 1;
+                    currentPoint[i] += increments[i];
                     steppingValues[i] += ((2 * differences[i]) - (2 * differences[indexOfGreatest]));
                 }
             }
-            currentPoint[indexOfGreatest] += 1;
+            currentPoint[indexOfGreatest] += increments[indexOfGreatest];
         }
-        return coordinates;
     }
 }

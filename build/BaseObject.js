@@ -1,8 +1,10 @@
 import { VoxelStorage } from "./VoxelStorage.js";
 export class BaseObject {
     voxelStorage;
-    constructor(dimensionCount) {
-        this.voxelStorage = new VoxelStorage(dimensionCount);
+    pointFactoryMethod;
+    constructor(dimensionCount, pointFactoryMethod) {
+        this.pointFactoryMethod = pointFactoryMethod;
+        this.voxelStorage = new VoxelStorage(dimensionCount, pointFactoryMethod);
     }
     preHash() {
         return this;
@@ -18,10 +20,17 @@ export class BaseObject {
         const endPoint = p2.arr;
         const currentPoint = [...startPoint];
         const differences = [];
+        const increments = [];
         let indexOfGreatest = 0;
         const dimensions = p1.dimensionCount();
         for (let i = 0; i < dimensions; i++) {
             differences.push(Math.abs(endPoint[i] - startPoint[i]));
+            if (endPoint[i] - startPoint[i] < 0) {
+                increments.push(-1);
+            }
+            else {
+                increments.push(1);
+            }
             if (differences[i] > differences[indexOfGreatest]) {
                 indexOfGreatest = i;
             }
@@ -31,7 +40,10 @@ export class BaseObject {
         for (let i = 0; i < dimensions; i++) {
             steppingValues.push(2 * differences[i] - differences[indexOfGreatest]);
         }
-        while (currentPoint[indexOfGreatest] <= endPoint[indexOfGreatest]) {
+        while (true) {
+            if (!(startPoint[indexOfGreatest] < endPoint[indexOfGreatest] ? (currentPoint[indexOfGreatest] <= endPoint[indexOfGreatest]) : (currentPoint[indexOfGreatest] >= endPoint[indexOfGreatest]))) {
+                return coordinates;
+            }
             coordinates.push(p1.factoryMethod([...currentPoint]));
             for (let i = 0; i < dimensions; i++) {
                 if (i === indexOfGreatest) {
@@ -41,12 +53,11 @@ export class BaseObject {
                     steppingValues[i] += (2 * differences[i]);
                 }
                 else {
-                    currentPoint[i] += 1;
+                    currentPoint[i] += increments[i];
                     steppingValues[i] += ((2 * differences[i]) - (2 * differences[indexOfGreatest]));
                 }
             }
-            currentPoint[indexOfGreatest] += 1;
+            currentPoint[indexOfGreatest] += increments[indexOfGreatest];
         }
-        return coordinates;
     }
 }

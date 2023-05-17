@@ -10,7 +10,7 @@ import { BaseObject } from "./build/BaseObject.js"
 
 let tree = new VoxelStorage(3);
 
-// console.log(BaseObject.brensenham(new Point3D(0,0,0), new Point3D(1,10,1)))
+console.log(BaseObject.brensenham(new Point3D(0,0,0), new Point3D(5,5,5)))
 
 
 

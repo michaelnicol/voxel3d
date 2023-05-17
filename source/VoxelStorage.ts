@@ -25,6 +25,14 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       this.pointFactoryMethod = pointFactoryMethod;
    }
 
+   getMaxDimensions(): number {
+      return this.maxDimensions;
+   }
+
+   getCoordinateCount(): number {
+      return this.coordinateCount;
+   }
+
    getDepth() {
       let depth = 0;
       let current: BinaryTreeNode<VoxelStorageNode> | undefined = this.root.getRoot();
@@ -168,7 +176,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       }
    }
 
-   removeCoordinate(coordinate: E): void {
+   removeCoordinate(coordinate: E, calculauteRange: boolean = true): number[] {
       this.coordinateCount-=1;
       if (!this.hasCoordinate(coordinate)) {
          throw new Error("Coordinate does not exist");
@@ -188,9 +196,10 @@ export class VoxelStorage<E extends Point> implements ValidObject {
          }
          currentTree = ((currentTree.removeItem(arr[i]) as BinaryTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode);
       }
-      if (rangeList.length > 0) {
+      if (calculauteRange && rangeList.length > 0) {
          this.findRangeInclusive(rangeList, this.dimensionRange);
       }
+      return rangeList;
    }
    /**
     * @TODO fix the allCoordinates.push with constructor

@@ -7,7 +7,8 @@ export class VoxelStorage {
     root = new BinaryTree(undefined, new VoxelStorageComparator());
     maxDimensions = -1;
     coordinateCount = 0;
-    constructor(maxDimensions) {
+    pointFactoryMethod;
+    constructor(maxDimensions, pointFactoryMethod) {
         if (maxDimensions < 1) {
             throw new Error("Invalid Depth: Can not be less than 1");
         }
@@ -15,6 +16,7 @@ export class VoxelStorage {
         for (let i = 0; i < this.maxDimensions; i++) {
             this.dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
         }
+        this.pointFactoryMethod = pointFactoryMethod;
     }
     getDepth() {
         let depth = 0;
@@ -197,7 +199,7 @@ export class VoxelStorage {
         if (depth >= this.maxDimensions) {
             currentCoordinate.push(currentNode.getValue().getData());
             for (let i = currentNode.getAmount(); i > 0; i--) {
-                // allCoordinates.push((new E().factoryMethod(...currentCoordinate)));
+                allCoordinates.push(this.pointFactoryMethod(...currentCoordinate));
             }
             return;
         }
