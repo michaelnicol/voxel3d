@@ -4,10 +4,28 @@ import { VoxelStorage } from "./VoxelStorage.js";
 
 export class BaseObject<E extends Point> implements ValidObject {
     private voxelStorage!: VoxelStorage<E>;
-    pointFactoryMethod: Function;
+    private pointFactoryMethod: Function;
     constructor(dimensionCount: number, pointFactoryMethod: Function) {
         this.pointFactoryMethod = pointFactoryMethod;
         this.voxelStorage = new VoxelStorage<E>(dimensionCount, pointFactoryMethod)
+    }
+
+    setVoxelStorage(newVoxelStorage: VoxelStorage<E>): void {
+        if (newVoxelStorage.getDepth() != this.voxelStorage.getDepth()) {
+            throw new Error("Can not set voxel storage to a different depth")
+        }
+        else {
+            this.voxelStorage = newVoxelStorage;
+            this.pointFactoryMethod = newVoxelStorage.pointFactoryMethod;
+        }
+    }
+
+    hasVoxel(p: E): boolean {
+        return this.voxelStorage.hasCoordinate(p);
+    }
+
+    getFactoryMethod(): Function {
+        return this.pointFactoryMethod;
     }
 
     getMaxDimensions(): number {
@@ -18,13 +36,13 @@ export class BaseObject<E extends Point> implements ValidObject {
         return this.voxelStorage.getCoordinateCount();
     }
 
-    getVoxels(): E[] {
-        return this.voxelStorage.getCoordinateList();
+    getCoordinateList(duplicates: boolean): E[] {
+        return this.voxelStorage.getCoordinateList(duplicates);
     }
 
-    addVoxels(coordinatesToAdd: E[]): BaseObject<E> {
+    addVoxels(coordinatesToAdd: E[], allowDuplicates: boolean): BaseObject<E> {
         for (const p of coordinatesToAdd) {
-            this.voxelStorage.addCoordinate(p);
+            this.voxelStorage.addCoordinate(p, allowDuplicates);
         }
         return this;
     }
@@ -42,7 +60,7 @@ export class BaseObject<E extends Point> implements ValidObject {
         return this;
     }
     toPrint(): string {
-        return JSON.stringify(this.voxelStorage.getCoordinateList());
+        return JSON.stringify(this.voxelStorage.getCoordinateList(true));
     }
     static brensenham(p1: Point, p2: Point): Point[] {
         if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {

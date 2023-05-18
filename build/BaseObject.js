@@ -6,11 +6,49 @@ export class BaseObject {
         this.pointFactoryMethod = pointFactoryMethod;
         this.voxelStorage = new VoxelStorage(dimensionCount, pointFactoryMethod);
     }
+    setVoxelStorage(newVoxelStorage) {
+        if (newVoxelStorage.getDepth() != this.voxelStorage.getDepth()) {
+            throw new Error("Can not set voxel storage to a different depth");
+        }
+        else {
+            this.voxelStorage = newVoxelStorage;
+            this.pointFactoryMethod = newVoxelStorage.pointFactoryMethod;
+        }
+    }
+    hasVoxel(p) {
+        return this.voxelStorage.hasCoordinate(p);
+    }
+    getFactoryMethod() {
+        return this.pointFactoryMethod;
+    }
+    getMaxDimensions() {
+        return this.voxelStorage.getMaxDimensions();
+    }
+    getCoordinateCount() {
+        return this.voxelStorage.getCoordinateCount();
+    }
+    getCoordinateList(duplicates) {
+        return this.voxelStorage.getCoordinateList(duplicates);
+    }
+    addVoxels(coordinatesToAdd, allowDuplicates) {
+        for (const p of coordinatesToAdd) {
+            this.voxelStorage.addCoordinate(p, allowDuplicates);
+        }
+        return this;
+    }
+    removeVoxels(coordinatesToRemove) {
+        const rangesToUpdate = [];
+        for (const p of coordinatesToRemove) {
+            rangesToUpdate.push(...this.voxelStorage.removeCoordinate(p));
+        }
+        this.voxelStorage.findRangeInclusive(rangesToUpdate, this.voxelStorage.dimensionRange);
+        return this;
+    }
     preHash() {
         return this;
     }
     toPrint() {
-        return JSON.stringify(this.voxelStorage.getCoordinateList());
+        return JSON.stringify(this.voxelStorage.getCoordinateList(true));
     }
     static brensenham(p1, p2) {
         if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {

@@ -18,6 +18,12 @@ export class VoxelStorage {
         }
         this.pointFactoryMethod = pointFactoryMethod;
     }
+    getMaxDimensions() {
+        return this.maxDimensions;
+    }
+    getCoordinateCount() {
+        return this.coordinateCount;
+    }
     getDepth() {
         let depth = 0;
         let current = this.root.getRoot();
@@ -121,7 +127,10 @@ export class VoxelStorage {
         }
         return true;
     }
-    addCoordinate(coordinate) {
+    addCoordinate(coordinate, allowDuplicates = false) {
+        if (!allowDuplicates && this.hasCoordinate(coordinate)) {
+            return;
+        }
         this.coordinateCount += 1;
         const { arr } = coordinate;
         var currentNode;
@@ -155,7 +164,7 @@ export class VoxelStorage {
             throw new Error("Internal Error");
         }
     }
-    removeCoordinate(coordinate) {
+    removeCoordinate(coordinate, calculauteRange = true) {
         this.coordinateCount -= 1;
         if (!this.hasCoordinate(coordinate)) {
             throw new Error("Coordinate does not exist");
@@ -175,9 +184,10 @@ export class VoxelStorage {
             }
             currentTree = currentTree.removeItem(arr[i]).getValue();
         }
-        if (rangeList.length > 0) {
+        if (calculauteRange && rangeList.length > 0) {
             this.findRangeInclusive(rangeList, this.dimensionRange);
         }
+        return rangeList;
     }
     /**
      * @TODO fix the allCoordinates.push with constructor
@@ -187,34 +197,39 @@ export class VoxelStorage {
      * @param depth
      * @returns
      */
-    #getCoordinatesRecursiveCall(currentNode, currentCoordinate, allCoordinates, depth) {
+    #getCoordinatesRecursiveCall(currentNode, currentCoordinate, allCoordinates, depth, duplicates) {
         if (currentNode.hasRight()) {
             let rightSubTree = currentNode.getRight();
-            this.#getCoordinatesRecursiveCall(rightSubTree, [...currentCoordinate], allCoordinates, depth);
+            this.#getCoordinatesRecursiveCall(rightSubTree, [...currentCoordinate], allCoordinates, depth, duplicates);
         }
         if (currentNode.hasLeft()) {
             let leftSubTree = currentNode.getLeft();
-            this.#getCoordinatesRecursiveCall(leftSubTree, [...currentCoordinate], allCoordinates, depth);
+            this.#getCoordinatesRecursiveCall(leftSubTree, [...currentCoordinate], allCoordinates, depth, duplicates);
         }
         if (depth >= this.maxDimensions) {
             currentCoordinate.push(currentNode.getValue().getData());
-            for (let i = currentNode.getAmount(); i > 0; i--) {
-                allCoordinates.push(this.pointFactoryMethod(...currentCoordinate));
+            if (duplicates) {
+                for (let i = currentNode.getAmount(); i > 0; i--) {
+                    allCoordinates.push(this.pointFactoryMethod(currentCoordinate));
+                }
+            }
+            else {
+                allCoordinates.push(this.pointFactoryMethod(currentCoordinate));
             }
             return;
         }
         else {
             currentCoordinate.push(currentNode.getValue().getData());
             let downwardSubTree = currentNode.getValue().getBinarySubTreeRoot();
-            this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, ++depth);
+            this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, ++depth, duplicates);
         }
     }
-    getCoordinateList() {
+    getCoordinateList(duplicates) {
         if (this.root.getRoot() === undefined) {
             return [];
         }
         let allCoordinates = [];
-        this.#getCoordinatesRecursiveCall(this.root.getRoot(), [], allCoordinates, 1);
+        this.#getCoordinatesRecursiveCall(this.root.getRoot(), [], allCoordinates, 1, duplicates);
         return allCoordinates;
     }
     getBoundingBox3D() {

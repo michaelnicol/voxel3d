@@ -7,11 +7,17 @@ import { VoxelStorageNode } from "./build/VoxelStorageNode.js"
 import { VoxelStorage } from "./build/VoxelStorage.js"
 import { Point3D } from "./build/Point3D.js"
 import { BaseObject } from "./build/BaseObject.js"
+import { BasicSetOperations } from "./build/BasicSetOperations.js"
 
-let tree = new VoxelStorage(3);
+let tree1 = new BaseObject(3, new Point3D().factoryMethod);
 
-console.log(BaseObject.brensenham(new Point3D(0,0,0), new Point3D(5,5,5)))
+tree1.addVoxels([new Point3D(0,0,0)])
 
+let tree2 = new BaseObject(3, new Point3D().factoryMethod);
+
+tree2.addVoxels([new Point3D(0,0,1)])
+
+console.log(BasicSetOperations.UNION([tree1, tree2], true))
 
 
 
