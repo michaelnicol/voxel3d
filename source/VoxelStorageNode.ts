@@ -1,27 +1,27 @@
-import { BinaryTree } from "./BinaryTree.js";
+import { AVLTree } from "./AVLTree.js";
 import { ValidObject } from "./ValidObject.js";
-import { BinaryTreeNode } from "./BinaryTreeNode.js";
+import { AVLTreeNode } from "./AVLTreeNode.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 
 export class VoxelStorageNode implements ValidObject {
    data: number;
-   binarySubtree: BinaryTree<VoxelStorageNode> = new BinaryTree<VoxelStorageNode>(undefined, new VoxelStorageComparator());
+   binarySubtree: AVLTree<VoxelStorageNode> = new AVLTree<VoxelStorageNode>(undefined, new VoxelStorageComparator());
    constructor(data: number) {
       this.data = data;
    }
-   getBinarySubTreeRoot(): BinaryTreeNode<VoxelStorageNode> | undefined {
+   getBinarySubTreeRoot(): AVLTreeNode<VoxelStorageNode> | undefined {
       return this.binarySubtree.getRoot();
    }
 
-   removeItem(numberToRemove: number): BinaryTreeNode<VoxelStorageNode> | undefined {
+   removeItem(numberToRemove: number): AVLTreeNode<VoxelStorageNode> | undefined {
       return this.binarySubtree.removeItem(new VoxelStorageNode(numberToRemove));
    }
 
-   addItem(numberToAdd: number): BinaryTreeNode<VoxelStorageNode> {
+   addItem(numberToAdd: number): AVLTreeNode<VoxelStorageNode> {
       return this.binarySubtree.addItem(new VoxelStorageNode(numberToAdd));
    }
 
-   getItem(numberToCheck: number): BinaryTreeNode<VoxelStorageNode> | undefined {
+   getItem(numberToCheck: number): AVLTreeNode<VoxelStorageNode> | undefined {
       return this.binarySubtree.getItem(new VoxelStorageNode(numberToCheck));
    }
 
@@ -29,7 +29,7 @@ export class VoxelStorageNode implements ValidObject {
       return this.binarySubtree.hasItem(new VoxelStorageNode(numberToCheck));
    }
 
-   getBinarySubTree(): BinaryTree<VoxelStorageNode> {
+   getBinarySubTree(): AVLTree<VoxelStorageNode> {
       return this.binarySubtree;
    }
 

@@ -1,8 +1,8 @@
-import { BinaryTree } from "./BinaryTree.js";
+import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 export class VoxelStorageNode {
     data;
-    binarySubtree = new BinaryTree(undefined, new VoxelStorageComparator());
+    binarySubtree = new AVLTree(undefined, new VoxelStorageComparator());
     constructor(data) {
         this.data = data;
     }

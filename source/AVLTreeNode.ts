@@ -1,15 +1,38 @@
 import { ValidObject } from "./ValidObject.js";
-export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
-  private left?: BinaryTreeNode<E>;
-  private right?: BinaryTreeNode<E>;
-  private parent?: BinaryTreeNode<E>;
+export class AVLTreeNode<E extends ValidObject> implements ValidObject {
+  private left?: AVLTreeNode<E>;
+  private right?: AVLTreeNode<E>;
+  private parent?: AVLTreeNode<E>;
   private value?: E;
   private amount = 1;
-  constructor(left: BinaryTreeNode<E> | undefined, parent: BinaryTreeNode<E> | undefined, right: BinaryTreeNode<E> | undefined, value: E) {
+  private height: number = 1;
+  constructor(left: AVLTreeNode<E> | undefined, parent: AVLTreeNode<E> | undefined, right: AVLTreeNode<E> | undefined, value: E) {
     this.left = left;
     this.right = right;
     this.parent = parent;
     this.value = value;
+  }
+
+  setHeight(h : number) {
+    this.height = h;
+    if (h < 0) {
+      throw new Error(`Negative Height: ${this.height}`);
+    }
+  }
+
+  getHeight(): number {
+    return this.height;
+  }
+
+  increaseHeight() {
+    this.height += 1;
+  }
+
+  decreaseHeight() {
+    this.height -= 1;
+    if (this.height < 0 || this.height == 0 && this.parent != undefined) {
+      throw new Error(`Negative Height: ${this.height}, or the height is zero and the parent is not undefined: ${this.parent?.toPrint()}`)
+    }
   }
 
   toPrint(): string {
@@ -25,7 +48,7 @@ export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
     if (this.hasParent()) {
       parentPrint = this.getParent()?.getValue() === undefined ? parentPrint : (this.getParent()?.getValue()?.toPrint() as string);
     }
-    return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}>`
+    return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}, H: ${this.height}>`
   }
 
   // Interface
@@ -34,40 +57,40 @@ export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
     return this;
   }
 
-  public setLeft(newLeft: BinaryTreeNode<E> | undefined): void {
+  public setLeft(newLeft: AVLTreeNode<E> | undefined): void {
     this.left = newLeft;
     if (newLeft != undefined) {
       newLeft.setParent(this)
     }
   }
 
-  public setRight(newRight: BinaryTreeNode<E> | undefined): void {
+  public setRight(newRight: AVLTreeNode<E> | undefined): void {
     this.right = newRight;
     if (newRight != undefined) {
       newRight.setParent(this)
     }
   }
 
-  public setParent(newParent: BinaryTreeNode<E>): BinaryTreeNode<E> {
+  public setParent(newParent: AVLTreeNode<E> | undefined): AVLTreeNode<E> {
     this.parent = newParent;
     return this;
   }
-  public setValue(value: E): BinaryTreeNode<E> {
+  public setValue(value: E | undefined): AVLTreeNode<E> {
     this.value = value;
     return this;
   }
-  public increaseAmount(): BinaryTreeNode<E> {
+  public increaseAmount(): AVLTreeNode<E> {
     this.amount += 1;
     return this;
   }
-  public decreaseAmount(): BinaryTreeNode<E> {
+  public decreaseAmount(): AVLTreeNode<E> {
     this.amount -= 1;
     if (this.amount < 0) {
       throw new Error("Binary Tree Node amount can not be less than zero")
     }
     return this;
   }
-  public resetAmount(): BinaryTreeNode<E> {
+  public resetAmount(): AVLTreeNode<E> {
     this.amount = 0;
     return this;
   }
@@ -81,10 +104,10 @@ export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
   public hasRight(): boolean {
     return this.right != null;
   }
-  public getLeft(): BinaryTreeNode<E> | undefined {
+  public getLeft(): AVLTreeNode<E> | undefined {
     return this.left;
   }
-  public getRight(): BinaryTreeNode<E> | undefined {
+  public getRight(): AVLTreeNode<E> | undefined {
     return this.right;
   }
   public getValue(): E | undefined {
@@ -93,7 +116,7 @@ export class BinaryTreeNode<E extends ValidObject> implements ValidObject {
   public getAmount(): number {
     return this.amount;
   }
-  public getParent(): BinaryTreeNode<E> | undefined {
+  public getParent(): AVLTreeNode<E> | undefined {
     return this.parent;
   }
 }

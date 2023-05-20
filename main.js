@@ -1,24 +1,24 @@
 
-// import { BinaryTree } from "./build/BinaryTree.js"
-// import { NumberComparator } from "./build/NumberComparator.js"
-// import { NumberWrapper } from "./build/NumberWrapper.js"
-// import { DoublyLinkedList } from "./build/DoublyLinkedList.js"
+import { AVLTree } from "./build/AVLTree.js"
+import { NumberComparator } from "./build/NumberComparator.js"
+import { NumberWrapper } from "./build/NumberWrapper.js"
+import { DoublyLinkedList } from "./build/DoublyLinkedList.js"
 import { VoxelStorageNode } from "./build/VoxelStorageNode.js"
 import { VoxelStorage } from "./build/VoxelStorage.js"
 import { Point3D } from "./build/Point3D.js"
 import { BaseObject } from "./build/BaseObject.js"
 import { BasicSetOperations } from "./build/BasicSetOperations.js"
 
-let tree1 = new BaseObject(3, new Point3D().factoryMethod);
+let tree = new AVLTree(undefined, new NumberComparator());
 
-tree1.addVoxels([new Point3D(0,0,0)])
+for (let i = 0; i < 500; i++) {
+   tree.addItem(new NumberWrapper(i))
+}
 
-let tree2 = new BaseObject(3, new Point3D().factoryMethod);
 
-tree2.addVoxels([new Point3D(0,0,1)])
+console.log("Final tree: \n"+tree.toPrint())
 
-console.log(BasicSetOperations.UNION([tree1, tree2], true))
-
+// console.log(tree)
 
 
 

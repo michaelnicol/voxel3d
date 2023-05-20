@@ -45,7 +45,7 @@ export class BasicSetOperations {
             smallestObjectIndex = i;
          }
       }
-      
+
       for (let o of objs) {
          let coordinates = o.getCoordinateList(false);
          for (let coord of coordinates) {
@@ -68,9 +68,9 @@ export class BasicSetOperations {
       }
       const points: Point[] = []
       const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions(), a.getFactoryMethod());
-      const coordinates: Point[] = a.getCoordinateList(false);
+      const coordinates: Point[] = b.getCoordinateList(false);
       for (let coord of coordinates) {
-         if (!b.hasVoxel(coord)) {
+         if (!a.hasVoxel(coord)) {
             if (returnList) {
                points.push(coord)
             } else {
@@ -87,17 +87,18 @@ export class BasicSetOperations {
    static COMPLIMENT(a: BaseObject<Point>, universalSet: BaseObject<Point>[], returnList: boolean): Point[] | VoxelStorage<Point> {
       const points: Point[] = []
       const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions(), a.getFactoryMethod());
-      const coordinates: Point[] = a.getCoordinateList(false);
-      coordinateLoop: for (let coord of coordinates) {
-         for (let i = 0; i < universalSet.length; i++) {
-            if (universalSet[i] != a && universalSet[i].hasVoxel(coord)) {
-               continue coordinateLoop;
+      for (let o of universalSet) {
+         if (o != a) {
+            let currentCoordinates: Point[] = o.getCoordinateList(false);
+            for (let coord of currentCoordinates) {
+               if (!a.hasVoxel(coord)) {
+                  if (returnList) {
+                     points.push(coord)
+                  } else { 
+                     voxelStorage.addCoordinate(coord, false); 
+                  }
+               }
             }
-         }
-         if (returnList) {
-            points.push(coord)
-         } else {
-            voxelStorage.addCoordinate(coord, false)
          }
       }
       if (returnList) {

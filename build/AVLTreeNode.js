@@ -1,14 +1,33 @@
-export class BinaryTreeNode {
+export class AVLTreeNode {
     left;
     right;
     parent;
     value;
     amount = 1;
+    height = 1;
     constructor(left, parent, right, value) {
         this.left = left;
         this.right = right;
         this.parent = parent;
         this.value = value;
+    }
+    setHeight(h) {
+        this.height = h;
+        if (h < 0) {
+            throw new Error(`Negative Height: ${this.height}`);
+        }
+    }
+    getHeight() {
+        return this.height;
+    }
+    increaseHeight() {
+        this.height += 1;
+    }
+    decreaseHeight() {
+        this.height -= 1;
+        if (this.height < 0 || this.height == 0 && this.parent != undefined) {
+            throw new Error(`Negative Height: ${this.height}, or the height is zero and the parent is not undefined: ${this.parent?.toPrint()}`);
+        }
     }
     toPrint() {
         let leftPrint = "undefined";
@@ -23,7 +42,7 @@ export class BinaryTreeNode {
         if (this.hasParent()) {
             parentPrint = this.getParent()?.getValue() === undefined ? parentPrint : this.getParent()?.getValue()?.toPrint();
         }
-        return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}>`;
+        return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}, H: ${this.height}>`;
     }
     // Interface
     preHash() {

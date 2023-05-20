@@ -1,10 +1,10 @@
 import { VoxelStorageNode } from "./VoxelStorageNode.js";
-import { BinaryTree } from "./BinaryTree.js";
+import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 import { Point3D } from "./Point3D.js";
 export class VoxelStorage {
     dimensionRange = new Map();
-    root = new BinaryTree(undefined, new VoxelStorageComparator());
+    root = new AVLTree(undefined, new VoxelStorageComparator());
     maxDimensions = -1;
     coordinateCount = 0;
     pointFactoryMethod;
@@ -100,7 +100,6 @@ export class VoxelStorage {
                 range.set(rangeNumber, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
             }
         }
-        console.log(this.dimensionRange);
         if (this.coordinateCount === 0) {
             return range;
         }
@@ -127,7 +126,7 @@ export class VoxelStorage {
         }
         return true;
     }
-    addCoordinate(coordinate, allowDuplicates = false) {
+    addCoordinate(coordinate, allowDuplicates) {
         if (!allowDuplicates && this.hasCoordinate(coordinate)) {
             return;
         }
@@ -190,7 +189,6 @@ export class VoxelStorage {
         return rangeList;
     }
     /**
-     * @TODO fix the allCoordinates.push with constructor
      * @param currentNode
      * @param currentCoordinate
      * @param allCoordinates

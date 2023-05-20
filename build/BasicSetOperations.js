@@ -65,9 +65,9 @@ export class BasicSetOperations {
         }
         const points = [];
         const voxelStorage = new VoxelStorage(a.getMaxDimensions(), a.getFactoryMethod());
-        const coordinates = a.getCoordinateList(false);
+        const coordinates = b.getCoordinateList(false);
         for (let coord of coordinates) {
-            if (!b.hasVoxel(coord)) {
+            if (!a.hasVoxel(coord)) {
                 if (returnList) {
                     points.push(coord);
                 }
@@ -86,18 +86,19 @@ export class BasicSetOperations {
     static COMPLIMENT(a, universalSet, returnList) {
         const points = [];
         const voxelStorage = new VoxelStorage(a.getMaxDimensions(), a.getFactoryMethod());
-        const coordinates = a.getCoordinateList(false);
-        coordinateLoop: for (let coord of coordinates) {
-            for (let i = 0; i < universalSet.length; i++) {
-                if (universalSet[i] != a && universalSet[i].hasVoxel(coord)) {
-                    continue coordinateLoop;
+        for (let o of universalSet) {
+            if (o != a) {
+                let currentCoordinates = o.getCoordinateList(false);
+                for (let coord of currentCoordinates) {
+                    if (!a.hasVoxel(coord)) {
+                        if (returnList) {
+                            points.push(coord);
+                        }
+                        else {
+                            voxelStorage.addCoordinate(coord, false);
+                        }
+                    }
                 }
-            }
-            if (returnList) {
-                points.push(coord);
-            }
-            else {
-                voxelStorage.addCoordinate(coord, false);
             }
         }
         if (returnList) {

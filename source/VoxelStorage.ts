@@ -1,8 +1,8 @@
-import { BinaryTreeNode } from "./BinaryTreeNode.js";
+import { AVLTreeNode } from "./AVLTreeNode.js";
 import { ValidObject } from "./ValidObject.js";
 import { VoxelStorageNode } from "./VoxelStorageNode.js";
 import { Point } from "./Point.js";
-import { BinaryTree } from "./BinaryTree.js";
+import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 import { Point3D } from "./Point3D.js";
 import { Corners3D } from "./Corners3D.js";
@@ -10,7 +10,7 @@ import { Corners3D } from "./Corners3D.js";
 export class VoxelStorage<E extends Point> implements ValidObject {
 
    dimensionRange: Map<number, number[]> = new Map();
-   root: BinaryTree<VoxelStorageNode> = new BinaryTree<VoxelStorageNode>(undefined, new VoxelStorageComparator());
+   root: AVLTree<VoxelStorageNode> = new AVLTree<VoxelStorageNode>(undefined, new VoxelStorageComparator());
    private maxDimensions: number = -1;
    coordinateCount: number = 0;
    pointFactoryMethod!: Function;
@@ -35,7 +35,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
 
    getDepth() {
       let depth = 0;
-      let current: BinaryTreeNode<VoxelStorageNode> | undefined = this.root.getRoot();
+      let current: AVLTreeNode<VoxelStorageNode> | undefined = this.root.getRoot();
       while (current != undefined) {
          depth++;
          if (current.getValue() === undefined) {
@@ -46,7 +46,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       return depth;
    }
 
-   private findRangeRecursiveCall(currentNode: BinaryTreeNode<VoxelStorageNode>, range: Map<number, number[]>, depth: number, limitingDepth: number, useInclusiveRanges: boolean, inclusiveRanges?: number[]) {
+   private findRangeRecursiveCall(currentNode: AVLTreeNode<VoxelStorageNode>, range: Map<number, number[]>, depth: number, limitingDepth: number, useInclusiveRanges: boolean, inclusiveRanges?: number[]) {
       if (!useInclusiveRanges || depth === (inclusiveRanges as number[])[(inclusiveRanges as number[]).length - 1]) {
          if (useInclusiveRanges) {
             // n is the length of the initial inclusiveRanges aray
@@ -72,15 +72,15 @@ export class VoxelStorage<E extends Point> implements ValidObject {
          }
       }
       if (currentNode.hasRight()) {
-         let rightSubTree = currentNode.getRight() as BinaryTreeNode<VoxelStorageNode>;
+         let rightSubTree = currentNode.getRight() as AVLTreeNode<VoxelStorageNode>;
          this.findRangeRecursiveCall(rightSubTree, range, depth, limitingDepth, useInclusiveRanges, inclusiveRanges)
       }
       if (currentNode.hasLeft()) {
-         let leftSubTree = currentNode.getLeft() as BinaryTreeNode<VoxelStorageNode>;
+         let leftSubTree = currentNode.getLeft() as AVLTreeNode<VoxelStorageNode>;
          this.findRangeRecursiveCall(leftSubTree, range, depth, limitingDepth, useInclusiveRanges, inclusiveRanges)
       }
       if (depth < (!useInclusiveRanges ? limitingDepth : this.maxDimensions - 1)) {
-         let downwardSubTree = (currentNode.getValue() as VoxelStorageNode).getBinarySubTreeRoot() as BinaryTreeNode<VoxelStorageNode>;
+         let downwardSubTree = (currentNode.getValue() as VoxelStorageNode).getBinarySubTreeRoot() as AVLTreeNode<VoxelStorageNode>;
          this.findRangeRecursiveCall(downwardSubTree, range, ++depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
       }
    }
@@ -115,11 +115,10 @@ export class VoxelStorage<E extends Point> implements ValidObject {
             range.set(rangeNumber, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
          }
       }
-      console.log(this.dimensionRange);
       if (this.coordinateCount === 0) {
          return range;
       }
-      this.findRangeRecursiveCall(this.root.getRoot() as BinaryTreeNode<VoxelStorageNode>, range, 0, exclusiveDepth, useInclusive, inclusiveRange);
+      this.findRangeRecursiveCall(this.root.getRoot() as AVLTreeNode<VoxelStorageNode>, range, 0, exclusiveDepth, useInclusive, inclusiveRange);
       return range;
    }
    getmaxDimensions(): number {
@@ -131,10 +130,10 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       if (!this.root.hasItem(nodeToFind)) {
          return false;
       }
-      let currentTree: VoxelStorageNode = (this.root.getItem(nodeToFind) as BinaryTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode;
+      let currentTree: VoxelStorageNode = (this.root.getItem(nodeToFind) as AVLTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode;
       for (let i = 1; i < arr.length; i++) {
          if (currentTree.hasItem(arr[i])) {
-            currentTree = ((currentTree.getItem(arr[i]) as BinaryTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode);
+            currentTree = ((currentTree.getItem(arr[i]) as AVLTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode);
          } else {
             return false;
          }
@@ -142,7 +141,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       return true;
    }
 
-   addCoordinate(coordinate: E, allowDuplicates: boolean = false): void {
+   addCoordinate(coordinate: E, allowDuplicates: boolean): void {
       if (!allowDuplicates && this.hasCoordinate(coordinate)) {
          return;
       }
@@ -168,10 +167,10 @@ export class VoxelStorage<E extends Point> implements ValidObject {
          const nodeToAdd: VoxelStorageNode = new VoxelStorageNode(arr[i]);
          if (i == 0) {
             this.root.addItem(nodeToAdd);
-            currentNode = (this.root.getItem(nodeToAdd) as BinaryTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode;
+            currentNode = (this.root.getItem(nodeToAdd) as AVLTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode;
          } else {
             (currentNode as VoxelStorageNode).addItem(arr[i]);
-            currentNode = ((currentNode as VoxelStorageNode).getItem(arr[i]) as BinaryTreeNode<VoxelStorageNode>).getValue();
+            currentNode = ((currentNode as VoxelStorageNode).getItem(arr[i]) as AVLTreeNode<VoxelStorageNode>).getValue();
          }
       }
       if (!this.root.hasItem(new VoxelStorageNode(arr[0]))) {
@@ -187,17 +186,17 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       const { arr } = coordinate;
       const rangeList = [];
       let nodeToFind = new VoxelStorageNode(arr[0]);
-      let nodeToReduce: BinaryTreeNode<VoxelStorageNode> = this.root.getItem(nodeToFind) as BinaryTreeNode<VoxelStorageNode>;
+      let nodeToReduce: AVLTreeNode<VoxelStorageNode> = this.root.getItem(nodeToFind) as AVLTreeNode<VoxelStorageNode>;
       if (nodeToReduce.getAmount() === 1) {
          rangeList.push(0);
       }
-      let currentTree: VoxelStorageNode = (this.root.removeItem(nodeToFind) as BinaryTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode;
+      let currentTree: VoxelStorageNode = (this.root.removeItem(nodeToFind) as AVLTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode;
       for (let i = 1; i < arr.length; i++) {
-         nodeToReduce = currentTree.getItem(arr[i]) as BinaryTreeNode<VoxelStorageNode>
+         nodeToReduce = currentTree.getItem(arr[i]) as AVLTreeNode<VoxelStorageNode>
          if (nodeToReduce.getAmount() === 1) {
             rangeList.push(i);
          }
-         currentTree = ((currentTree.removeItem(arr[i]) as BinaryTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode);
+         currentTree = ((currentTree.removeItem(arr[i]) as AVLTreeNode<VoxelStorageNode>).getValue() as VoxelStorageNode);
       }
       if (calculauteRange && rangeList.length > 0) {
          this.findRangeInclusive(rangeList, this.dimensionRange);
@@ -205,20 +204,19 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       return rangeList;
    }
    /**
-    * @TODO fix the allCoordinates.push with constructor
     * @param currentNode 
     * @param currentCoordinate 
     * @param allCoordinates 
     * @param depth 
     * @returns 
     */
-   #getCoordinatesRecursiveCall(currentNode: BinaryTreeNode<VoxelStorageNode>, currentCoordinate: number[], allCoordinates: E[], depth: number, duplicates: boolean) {
+   #getCoordinatesRecursiveCall(currentNode: AVLTreeNode<VoxelStorageNode>, currentCoordinate: number[], allCoordinates: E[], depth: number, duplicates: boolean) {
       if (currentNode.hasRight()) {
-         let rightSubTree = currentNode.getRight() as BinaryTreeNode<VoxelStorageNode>;
+         let rightSubTree = currentNode.getRight() as AVLTreeNode<VoxelStorageNode>;
          this.#getCoordinatesRecursiveCall(rightSubTree, [...currentCoordinate], allCoordinates, depth, duplicates)
       }
       if (currentNode.hasLeft()) {
-         let leftSubTree = currentNode.getLeft() as BinaryTreeNode<VoxelStorageNode>;
+         let leftSubTree = currentNode.getLeft() as AVLTreeNode<VoxelStorageNode>;
          this.#getCoordinatesRecursiveCall(leftSubTree, [...currentCoordinate], allCoordinates, depth, duplicates)
       }
       if (depth >= this.maxDimensions) {
@@ -233,7 +231,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
          return;
       } else {
          currentCoordinate.push((currentNode.getValue() as VoxelStorageNode).getData())
-         let downwardSubTree: BinaryTreeNode<VoxelStorageNode> = (currentNode.getValue() as VoxelStorageNode).getBinarySubTreeRoot() as BinaryTreeNode<VoxelStorageNode>;
+         let downwardSubTree: AVLTreeNode<VoxelStorageNode> = (currentNode.getValue() as VoxelStorageNode).getBinarySubTreeRoot() as AVLTreeNode<VoxelStorageNode>;
          this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, ++depth, duplicates)
       }
    }
@@ -243,7 +241,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
          return [];
       }
       let allCoordinates: E[] = [];
-      this.#getCoordinatesRecursiveCall(this.root.getRoot() as BinaryTreeNode<VoxelStorageNode>, [], allCoordinates, 1, duplicates);
+      this.#getCoordinatesRecursiveCall(this.root.getRoot() as AVLTreeNode<VoxelStorageNode>, [], allCoordinates, 1, duplicates);
       return allCoordinates
    }
 
