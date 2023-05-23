@@ -3,6 +3,7 @@ import { Point } from "./Point.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 
 export class BasicSetOperations {
+   constructor() {throw new Error("Can not extend or instance this class")}
    static INTERSECTION(objs: BaseObject<Point>[], returnList: boolean): Point[] | VoxelStorage<Point> {
       const points: Point[] = []
       const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(objs[0].getMaxDimensions(), objs[0].getFactoryMethod());
@@ -18,7 +19,7 @@ export class BasicSetOperations {
       let coordinates: Point[] = smallestObject.getCoordinateList(false);
       coordinateLoop: for (let coord of coordinates) {
          for (let i = 0; i < objs.length; i++) {
-            if (i != smallestObjectIndex && !objs[i].hasVoxel(coord)) {
+            if (i != smallestObjectIndex && !objs[i].hasCoordinate(coord)) {
                continue coordinateLoop;
             }
          }
@@ -70,7 +71,7 @@ export class BasicSetOperations {
       const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions(), a.getFactoryMethod());
       const coordinates: Point[] = b.getCoordinateList(false);
       for (let coord of coordinates) {
-         if (!a.hasVoxel(coord)) {
+         if (!a.hasCoordinate(coord)) {
             if (returnList) {
                points.push(coord)
             } else {
@@ -91,7 +92,7 @@ export class BasicSetOperations {
          if (o != a) {
             let currentCoordinates: Point[] = o.getCoordinateList(false);
             for (let coord of currentCoordinates) {
-               if (!a.hasVoxel(coord)) {
+               if (!a.hasCoordinate(coord)) {
                   if (returnList) {
                      points.push(coord)
                   } else { 

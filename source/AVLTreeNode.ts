@@ -5,7 +5,7 @@ export class AVLTreeNode<E extends ValidObject> implements ValidObject {
   private parent?: AVLTreeNode<E>;
   private value?: E;
   private amount = 1;
-  private height: number = 1;
+  private height: number = 0;
   constructor(left: AVLTreeNode<E> | undefined, parent: AVLTreeNode<E> | undefined, right: AVLTreeNode<E> | undefined, value: E) {
     this.left = left;
     this.right = right;
@@ -30,8 +30,8 @@ export class AVLTreeNode<E extends ValidObject> implements ValidObject {
 
   decreaseHeight() {
     this.height -= 1;
-    if (this.height < 0 || this.height == 0 && this.parent != undefined) {
-      throw new Error(`Negative Height: ${this.height}, or the height is zero and the parent is not undefined: ${this.parent?.toPrint()}`)
+    if (this.height < 0) {
+      throw new Error(`Negative Height: ${this.height}`)
     }
   }
 

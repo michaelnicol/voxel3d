@@ -4,7 +4,7 @@ export class AVLTreeNode {
     parent;
     value;
     amount = 1;
-    height = 1;
+    height = 0;
     constructor(left, parent, right, value) {
         this.left = left;
         this.right = right;
@@ -25,8 +25,8 @@ export class AVLTreeNode {
     }
     decreaseHeight() {
         this.height -= 1;
-        if (this.height < 0 || this.height == 0 && this.parent != undefined) {
-            throw new Error(`Negative Height: ${this.height}, or the height is zero and the parent is not undefined: ${this.parent?.toPrint()}`);
+        if (this.height < 0) {
+            throw new Error(`Negative Height: ${this.height}`);
         }
     }
     toPrint() {
