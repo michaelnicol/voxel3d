@@ -92,6 +92,20 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       return this.#findRange(true, [], maxDimensions, range);
    }
 
+   getSortedRangeIndices(): number[] {
+      let list: number[][] = []
+      for (let [key, value] of this.dimensionRange) {
+         let r = Math.abs(value[0] - value[2])
+         list.push([key,r])
+      }
+      list.sort((a, b) => b[1] - a[1])
+      let returnList: number[] = [];
+      for (let x of list) {
+         returnList.push(x[0])
+      }
+      return returnList;
+   }
+
    #findRange(useInclusive: boolean,
       inclusiveRange: number[],
       exclusiveDepth: number,

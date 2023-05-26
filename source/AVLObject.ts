@@ -3,6 +3,7 @@ import { Point } from "./Point.js";
 import { ValidObject } from "./ValidObject.js";
 import { Point2D } from "./Point2D.js";
 import { Point3D } from "./Point3D.js";
+import { Utilities } from "./Utilities.js";
 
 export class AVLObject<E extends Point> implements ValidObject {
    internalStorage: VoxelStorage<E>;
@@ -54,19 +55,14 @@ export class AVLObject<E extends Point> implements ValidObject {
       return this;
    }
 
-   static getSortedRange(internalStorage: VoxelStorage<Point3D>): [Map<number, Point2D[]>, number] {
+   static getSortedRange(internalStorage: VoxelStorage<Point3D>): [Map<number, Point2D[]>, number[]] {
       let rangeCoordinates = new Map<number, Point2D[]>();
       let points: Point3D[] = internalStorage.getCoordinateList(false);
       let storageRange: Map<number, number[]> = internalStorage.dimensionRange;
-      let longestRangeKey = 0;
+      let longestRangeKeys = internalStorage.getSortedRangeIndices()
+      let longestRangeKey = longestRangeKeys[0]
+      // needs to be a sorted list. Maybe range should produce it.
       let longestRangeSize = 0;
-      for (let [key, value] of storageRange) {
-         let r = Math.abs(value[0] - value[2])
-         if (r > longestRangeSize) {
-            longestRangeSize = r;
-            longestRangeKey = key;
-         }
-      }
       for (let i = (storageRange.get(longestRangeKey) as number[])[0]; i <= (storageRange.get(longestRangeKey) as number[])[2]; i++) {
          rangeCoordinates.set(i, [])
       }
@@ -81,7 +77,10 @@ export class AVLObject<E extends Point> implements ValidObject {
             (rangeCoordinates.get(arr[2]) as Point2D[]).push(new Point2D(arr[0], arr[1]))
          }
       }
-      return [rangeCoordinates, longestRangeKey]
+      for (let [key, value] of rangeCoordinates) {
+         value.sort((a, b) => Utilities.pythagorean(a, b))
+      }
+      return [rangeCoordinates, longestRangeKeys]
    }
 
    getRanges(): Map<number, number[]> {
@@ -97,6 +96,14 @@ export class AVLObject<E extends Point> implements ValidObject {
    }
 
    toPrint(): string {
-      return ""+this.internalStorage.getCoordinateList(true);
+      let list: E[] = this.internalStorage.getCoordinateList(true);
+      let str = "[";
+      for (let i = 0; i < list.length; i++) {
+         str += list[i].toPrint()
+         if (i + 1 != list.length) {
+            str += ","
+         }
+      }
+      return str + "]"
    }
 }

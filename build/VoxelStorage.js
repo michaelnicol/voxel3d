@@ -80,6 +80,19 @@ export class VoxelStorage {
     findRangeExclusive(maxDimensions, range) {
         return this.#findRange(true, [], maxDimensions, range);
     }
+    getSortedRangeIndices() {
+        let list = [];
+        for (let [key, value] of this.dimensionRange) {
+            let r = Math.abs(value[0] - value[2]);
+            list.push([key, r]);
+        }
+        list.sort((a, b) => b[1] - a[1]);
+        let returnList = [];
+        for (let x of list) {
+            returnList.push(x[0]);
+        }
+        return returnList;
+    }
     #findRange(useInclusive, inclusiveRange, exclusiveDepth, range) {
         if (exclusiveDepth > this.maxDimensions) {
             throw new Error(`Invalid tree height for range call: ${exclusiveDepth} greater than this.maxDimensions ${this.maxDimensions}`);

@@ -8,10 +8,13 @@ import { VoxelStorage } from "./build/VoxelStorage.js"
 import { Point3D } from "./build/Point3D.js"
 import { BasicSetOperations } from "./build/BasicSetOperations.js"
 import { HashStorage } from "./build/HashStorage.js"
+import { AVLPolygon3D } from "./build/AVLPolygon3D.js"
 
-// for (let i = 0; i < 100; i++) {
-//    console.log("\n---- Deleting ----\n")
-//    console.log("Before \n"+tree.getCoordinateList())
-//    tree.addCoordinate(new Point3D(i,i,i))
-//    console.log("After \n"+tree.getCoordinateList())
-// }
+let vertices = [new Point3D(0,0,0), new Point3D(50,0,0), new Point3D(50,50,0), new Point3D(0,50,0)]
+
+let polygon = new AVLPolygon3D(new Point3D().factoryMethod, vertices)
+polygon.createEdges();
+polygon.fillPolygon();
+console.log(polygon.toPrint())
+
+

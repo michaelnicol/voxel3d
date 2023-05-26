@@ -14,7 +14,7 @@ export class Point3D {
         return this.arr.join(",");
     }
     toPrint() {
-        return this.arr.join(",");
+        return "[" + this.arr.join(",") + "]";
     }
     dimensionCount() {
         return this.arr.length;

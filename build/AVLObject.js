@@ -1,5 +1,6 @@
 import { VoxelStorage } from "./VoxelStorage.js";
 import { Point2D } from "./Point2D.js";
+import { Utilities } from "./Utilities.js";
 export class AVLObject {
     internalStorage;
     pointFactoryMethod;
@@ -45,15 +46,10 @@ export class AVLObject {
         let rangeCoordinates = new Map();
         let points = internalStorage.getCoordinateList(false);
         let storageRange = internalStorage.dimensionRange;
-        let longestRangeKey = 0;
+        let longestRangeKeys = internalStorage.getSortedRangeIndices();
+        let longestRangeKey = longestRangeKeys[0];
+        // needs to be a sorted list. Maybe range should produce it.
         let longestRangeSize = 0;
-        for (let [key, value] of storageRange) {
-            let r = Math.abs(value[0] - value[2]);
-            if (r > longestRangeSize) {
-                longestRangeSize = r;
-                longestRangeKey = key;
-            }
-        }
         for (let i = storageRange.get(longestRangeKey)[0]; i <= storageRange.get(longestRangeKey)[2]; i++) {
             rangeCoordinates.set(i, []);
         }
@@ -70,7 +66,10 @@ export class AVLObject {
                 rangeCoordinates.get(arr[2]).push(new Point2D(arr[0], arr[1]));
             }
         }
-        return [rangeCoordinates, longestRangeKey];
+        for (let [key, value] of rangeCoordinates) {
+            value.sort((a, b) => Utilities.pythagorean(a, b));
+        }
+        return [rangeCoordinates, longestRangeKeys];
     }
     getRanges() {
         let mapToReturn = new Map();
@@ -83,6 +82,14 @@ export class AVLObject {
         return this;
     }
     toPrint() {
-        return "" + this.internalStorage.getCoordinateList(true);
+        let list = this.internalStorage.getCoordinateList(true);
+        let str = "[";
+        for (let i = 0; i < list.length; i++) {
+            str += list[i].toPrint();
+            if (i + 1 != list.length) {
+                str += ",";
+            }
+        }
+        return str + "]";
     }
 }

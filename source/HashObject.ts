@@ -55,6 +55,14 @@ export class HashObject<E extends Point> implements ValidObject {
    }
 
    toPrint(): string {
-      return ""+this.internalStorage.getCoordinateList(true);
+      let list: E[] = this.internalStorage.getCoordinateList(true);
+      let str = "[";
+      for (let i = 0; i < list.length; i++) {
+         str+=list[i].toPrint()
+         if (i + 1 != list.length) {
+            str+=","
+         }
+      }
+      return str+"]"
    }
 }

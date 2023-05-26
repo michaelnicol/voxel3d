@@ -1,6 +1,16 @@
 import { HashStorage } from "./HashStorage.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 export class Utilities {
+    static pythagorean(p1, p2) {
+        if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {
+            throw new Error(`Dimensions are not the same or dimension count is zero: p1 ${p1.dimensionCount()} verse p2 ${p2.dimensionCount()}`);
+        }
+        let d = 0;
+        for (let i = 0; i < p1.dimensionCount(); i++) {
+            d += Math.pow(Math.abs(p1.arr[i] - p2.arr[i]), 2);
+        }
+        return Math.sqrt(d);
+    }
     static brensenham(p1, p2, returnType) {
         if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {
             throw new Error(`Dimensions are not the same or dimension count is zero: p1 ${p1.dimensionCount()} verse p2 ${p2.dimensionCount()}`);

@@ -42,6 +42,14 @@ export class HashObject {
         return this;
     }
     toPrint() {
-        return "" + this.internalStorage.getCoordinateList(true);
+        let list = this.internalStorage.getCoordinateList(true);
+        let str = "[";
+        for (let i = 0; i < list.length; i++) {
+            str += list[i].toPrint();
+            if (i + 1 != list.length) {
+                str += ",";
+            }
+        }
+        return str + "]";
     }
 }
