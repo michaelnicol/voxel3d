@@ -206,7 +206,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
         } else {
           current.setLeft(newNode);
           this.increaseHeightAbove(newNode);
-          console.log("Before rebalance: \n"+this.toPrint())
+          // console.log("Before rebalance: \n"+this.toPrint())
           this.rebalance(newNode)
           return newNode;
         }
@@ -216,7 +216,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
         } else {
           current.setRight(newNode);
           this.increaseHeightAbove(newNode)
-          console.log("Before rebalance: \n"+this.toPrint())
+          // console.log("Before rebalance: \n"+this.toPrint())
           this.rebalance(newNode)
           return newNode;
         }

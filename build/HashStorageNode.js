@@ -1,5 +1,5 @@
 export class HashStorageNode {
-    hashMap = new Map;
+    hashMap = new Map();
     value;
     amount = 1;
     constructor(value) {
@@ -13,11 +13,11 @@ export class HashStorageNode {
         return this.value;
     }
     toPrint() {
-        let str = "";
-        for (let i in this.hashMap) {
-            str += `<${i}, ${this.hashMap.get(Number(i))}>`;
+        let str = "[" + this.value + ": ";
+        for (let [key, value] of this.hashMap) {
+            str += `<${key}, ${this.hashMap.get(Number(value))}>`;
         }
-        return str;
+        return str + "]";
     }
     increaseAmount() {
         this.amount += 1;

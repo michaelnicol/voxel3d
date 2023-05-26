@@ -6,20 +6,20 @@ export class HashStorage<E extends Point> implements ValidObject {
    hashMap = new Map<number, HashStorageNode<E>>;
    maxDimensions!: number;
    pointFactoryMethod!: Function;
+   coordinateCount: number = 0;
    constructor(maxDimensions: number, pointFactoryMethod: Function) {
-      if (maxDimensions < 1) {
-         throw new Error("Invalid Depth: Can not be less than 1")
+      if (maxDimensions < 1 || maxDimensions === undefined) {
+         throw new Error("Invalid Depth: Can not be less than 1 or undefined: " + maxDimensions)
       }
       this.maxDimensions = maxDimensions;
       this.pointFactoryMethod = pointFactoryMethod;
    }
 
    removeCoordinate(p: E): void {
-
       if (!this.hasCoordinate(p)) {
          return;
       }
-
+      this.coordinateCount -= 1;
       var workingMap: Map<number, HashStorageNode<E>> = this.hashMap;
       for (let i = 0; i < p.arr.length; i++) {
          let j = p.arr[i];
@@ -49,6 +49,9 @@ export class HashStorage<E extends Point> implements ValidObject {
    addCoordinate(p: E, allowDuplicates: boolean): void {
       if (this.hasCoordinate(p) && !allowDuplicates) {
          return;
+      }
+      if (!this.hasCoordinate(p)) {
+         this.coordinateCount += 1;
       }
       var workingMap: Map<number, HashStorageNode<E>> = this.hashMap;
       for (let i = 0; i < p.arr.length; i++) {
@@ -91,5 +94,8 @@ export class HashStorage<E extends Point> implements ValidObject {
    }
    toPrint(): string {
       return "" + this.getCoordinateList(true);
+   }
+   getCoordinateCount(): number {
+      return this.coordinateCount;
    }
 }

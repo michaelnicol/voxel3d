@@ -2,7 +2,7 @@ import { Point } from "./Point.js";
 import { HashStorage } from "./HashStorage.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 
-class Utilities {
+export class Utilities {
    static brensenham(p1: Point, p2: Point, returnType: number): Point[] | VoxelStorage<Point> | HashStorage<Point> {
       if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {
          throw new Error(`Dimensions are not the same or dimension count is zero: p1 ${p1.dimensionCount()} verse p2 ${p2.dimensionCount()}`)

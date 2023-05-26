@@ -92,7 +92,6 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       return this.#findRange(true, [], maxDimensions, range);
    }
 
-
    #findRange(useInclusive: boolean,
       inclusiveRange: number[],
       exclusiveDepth: number,

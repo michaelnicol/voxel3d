@@ -1,6 +1,9 @@
-import { BaseObject } from "./BaseObject.js";
+import { HashObject } from "./HashObject.js";
+import { ValidObject } from "./ValidObject.js";
 import { Point } from "./Point.js";
 import { VoxelStorage } from "./VoxelStorage.js";
+import { AVLObject } from "./AVLObject.js";
+import { BaseObject } from "./BaseObject.js";
 
 export class BasicSetOperations {
    constructor() {throw new Error("Can not extend or instance this class")}

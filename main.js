@@ -9,20 +9,9 @@ import { Point3D } from "./build/Point3D.js"
 import { BasicSetOperations } from "./build/BasicSetOperations.js"
 import { HashStorage } from "./build/HashStorage.js"
 
-let tree = new AVLTree(undefined, new NumberComparator())
-
-for (let i = 0; i < 100; i++) {
-   console.log("\n ----- adding item: "+i+" ------ \n")
-   console.log("> Before: \n"+tree.toPrint())
-   tree.addItem(new NumberWrapper(i))
-   console.log("> After: \n"+tree.toPrint())
-   console.log("\n ----------- \n")
-}
-
-for (let i = 0; i < 100; i++) {
-   console.log("\n---- Deleting ----\n")
-   console.log("Before \n"+tree.toPrint())
-   console.log(i)
-   tree.removeItem(new NumberWrapper(i))
-   console.log("After \n"+tree.toPrint())
-}
+// for (let i = 0; i < 100; i++) {
+//    console.log("\n---- Deleting ----\n")
+//    console.log("Before \n"+tree.getCoordinateList())
+//    tree.addCoordinate(new Point3D(i,i,i))
+//    console.log("After \n"+tree.getCoordinateList())
+// }

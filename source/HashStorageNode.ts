@@ -2,7 +2,7 @@ import { Point } from "./Point.js";
 import { ValidObject } from "./ValidObject.js";
 
 export class HashStorageNode<E extends Point> implements ValidObject {
-   hashMap = new Map<number, HashStorageNode<E>>;
+   hashMap: Map<number, HashStorageNode<E>> = new Map<number, HashStorageNode<E>>();
    private value!: number;
    amount: number = 1;
    constructor(value: number) {
@@ -15,11 +15,11 @@ export class HashStorageNode<E extends Point> implements ValidObject {
       return this.value;
    }
    toPrint(): string {
-      let str = "";
-      for (let i in this.hashMap) {
-         str+=`<${i}, ${this.hashMap.get(Number(i))}>`
+      let str = "["+this.value+": ";
+      for (let [key, value] of this.hashMap) {
+         str+=`<${key}, ${this.hashMap.get(Number(value))}>`
       }
-      return str;
+      return str+"]";
    }
    increaseAmount(): void {
       this.amount+=1;

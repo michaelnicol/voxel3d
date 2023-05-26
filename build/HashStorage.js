@@ -3,9 +3,10 @@ export class HashStorage {
     hashMap = new Map;
     maxDimensions;
     pointFactoryMethod;
+    coordinateCount = 0;
     constructor(maxDimensions, pointFactoryMethod) {
-        if (maxDimensions < 1) {
-            throw new Error("Invalid Depth: Can not be less than 1");
+        if (maxDimensions < 1 || maxDimensions === undefined) {
+            throw new Error("Invalid Depth: Can not be less than 1 or undefined: " + maxDimensions);
         }
         this.maxDimensions = maxDimensions;
         this.pointFactoryMethod = pointFactoryMethod;
@@ -14,6 +15,7 @@ export class HashStorage {
         if (!this.hasCoordinate(p)) {
             return;
         }
+        this.coordinateCount -= 1;
         var workingMap = this.hashMap;
         for (let i = 0; i < p.arr.length; i++) {
             let j = p.arr[i];
@@ -42,6 +44,9 @@ export class HashStorage {
     addCoordinate(p, allowDuplicates) {
         if (this.hasCoordinate(p) && !allowDuplicates) {
             return;
+        }
+        if (!this.hasCoordinate(p)) {
+            this.coordinateCount += 1;
         }
         var workingMap = this.hashMap;
         for (let i = 0; i < p.arr.length; i++) {
@@ -86,5 +91,8 @@ export class HashStorage {
     }
     toPrint() {
         return "" + this.getCoordinateList(true);
+    }
+    getCoordinateCount() {
+        return this.coordinateCount;
     }
 }
