@@ -38,6 +38,6 @@ export class AVLPolygon3D<E extends Point3D> extends AVLObject<E> {
       let rangeCoordinates: [Map<number, Point2D[]>, number[]] = AVLObject.getSortedRange(this.internalStorage);
       let TS_REF = this;
       // Just for laughs, here is the entire 3D polygon rasterization interface in one line 
-      return rangeCoordinates[0].forEach(function (value, key) { value.length >= 2 ? TS_REF.addCoordinates((Utilities.brensenham(value[0], value[1], 0) as Point2D[]).reduce<E[]>(function (accumulator: E[], currentValue: Point2D): E[] { return accumulator.push(TS_REF.convert2Dto3D(currentValue, rangeCoordinates[1][0], key)), accumulator; }, []), false) : value.length === 1 ? TS_REF.internalStorage.addCoordinate(TS_REF.convert2Dto3D(value[0], rangeCoordinates[1][0], key), false) : null; }), this;
+      return rangeCoordinates[0].forEach(function (value, key) { value.length >= 2 ? TS_REF.addCoordinates((Utilities.brensenham(value[0], value[value.length-1], 0) as Point2D[]).reduce<E[]>(function (accumulator: E[], currentValue: Point2D): E[] { return accumulator.push(TS_REF.convert2Dto3D(currentValue, rangeCoordinates[1][0], key)), accumulator; }, []), false) : value.length === 1 ? TS_REF.internalStorage.addCoordinate(TS_REF.convert2Dto3D(value[0], rangeCoordinates[1][0], key), false) : null; }), this;
    }
 }
