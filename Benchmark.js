@@ -50,4 +50,4 @@ for (let i = 0; i < amounts.length; i++) {
 
 console.log(JSON.stringify(amounts)+"\n\n")
 console.log(JSON.stringify(hash)+"\n\n")
-console.log(JSON.stringify(voxels)+"\n\n")
+console.log(JSON.stringify(voxel)+"\n\n")

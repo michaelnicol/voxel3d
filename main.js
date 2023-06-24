@@ -20,14 +20,14 @@ import { Point2D } from "./build/Point2D.js"
 
 let tree = new AVLTree(undefined, new NumberComparator())
 
-let amount = 6
+let amount = 100000
 
 for (let i = 0; i < amount; i++) {
    // console.log("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ")
    // console.log(" --- Adding node: "+i+" --- ")
    tree.addItem(new NumberWrapper(i))
    // console.log(tree.toPrint())
-   tree.confirmRotations()
+   // tree.confirmRotations()
    // console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \n\n")
 }
 
@@ -35,13 +35,13 @@ console.log("Final Tree")
 console.log(tree.toPrint())
 
 for (let i = 0; i < amount; i++) {
-   console.log("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ")
-   console.log(" --- Deleting node: "+i+" --- ")
+   // console.log("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ")
+   // console.log(" --- Deleting node: "+i+" --- ")
    tree.removeItem(new NumberWrapper(i))
-   console.log("Printing Tree")
-   console.log(tree.toPrint())
-   tree.confirmRotations()
-   console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \n\n")
+   // console.log("Printing Tree")
+   // console.log(tree.toPrint())
+   // tree.confirmRotations()
+   // console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \n\n")
 }
 
 console.log(tree.toPrint())
