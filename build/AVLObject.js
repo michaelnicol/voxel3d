@@ -1,13 +1,14 @@
 import { VoxelStorage } from "./VoxelStorage.js";
-import { Point2D } from "./Point2D.js";
 import { Utilities } from "./Utilities.js";
 export class AVLObject {
     internalStorage;
     pointFactoryMethod;
+    dimensionLowerFactoryMethod;
     maxDimensions;
-    constructor(maxDimensions, pointFactoryMethod) {
+    constructor(maxDimensions, pointFactoryMethod, dimensionLowerFactoryMethod) {
         this.maxDimensions = maxDimensions;
         this.pointFactoryMethod = pointFactoryMethod;
+        this.dimensionLowerFactoryMethod = dimensionLowerFactoryMethod;
         this.internalStorage = new VoxelStorage(maxDimensions, pointFactoryMethod);
     }
     setStorage(newStorage) {
@@ -42,29 +43,19 @@ export class AVLObject {
         this.internalStorage.findRangeInclusive(removeRanges, this.internalStorage.dimensionRange);
         return this;
     }
-    static getSortedRange(internalStorage) {
+    getSortedRange(targetDimension) {
         let rangeCoordinates = new Map();
-        let points = internalStorage.getCoordinateList(false);
-        let storageRange = internalStorage.dimensionRange;
-        let longestRangeKeys = internalStorage.getSortedRangeIndices();
-        let longestRangeKey = longestRangeKeys[0];
+        let points = this.internalStorage.getCoordinateList(false);
+        let storageRange = this.internalStorage.dimensionRange;
+        let longestRangeKeys = this.internalStorage.getSortedRangeIndices();
+        let longestRangeKey = longestRangeKeys[targetDimension];
         // needs to be a sorted list. Maybe range should produce it.
-        let longestRangeSize = 0;
         for (let i = storageRange.get(longestRangeKey)[0]; i <= storageRange.get(longestRangeKey)[2]; i++) {
             rangeCoordinates.set(i, []);
         }
-        // Storage best case is O(0.66N) = O(N), worst case is still O(N)
+        // Storage best case is O(0.5N) = O(N), worst case is still O(N)
         for (let coord of points) {
-            const { arr } = coord;
-            if (longestRangeKey === 0) {
-                rangeCoordinates.get(arr[0]).push(new Point2D(arr[1], arr[2]));
-            }
-            else if (longestRangeKey === 1) {
-                rangeCoordinates.get(arr[1]).push(new Point2D(arr[0], arr[2]));
-            }
-            else if (longestRangeKey === 2) {
-                rangeCoordinates.get(arr[2]).push(new Point2D(arr[0], arr[1]));
-            }
+            rangeCoordinates.get(coord.arr[longestRangeKey]).push(this.dimensionLowerFactoryMethod([...coord.arr].filter((v, i) => i != longestRangeKey)));
         }
         for (let [key, value] of rangeCoordinates) {
             value.sort((a, b) => Utilities.pythagorean(a, b));

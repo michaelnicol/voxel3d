@@ -6,4 +6,5 @@ export interface Point extends ValidObject, cloneable<Point> {
    arr: number[];
    dimensionCount(): number;
    factoryMethod(dimensionValues: number[]): Point;
+   getCoordinateValue(key: string): number | undefined
 }

@@ -1,0 +1,44 @@
+decreaseHeightAbove(node): void
+	current = node;
+	while current.parent != undefined:
+		parent = current.parent
+      		if parent.left === current:
+        		parent.balance+=1
+      		else:
+        		parent.balance-=1
+		current = parent
+
+rebalance(pivotNode): void
+	if pivotNode === undefined:
+		return;
+	if pivotNode.balance === 2:
+		if pivotNode.right.balance === -1:
+			pivotNode.right.balance = 0
+			pivotNode.right.left.balance = 1
+			rotateRight(pivotNode.right)
+		if pivotNode.right.balance === 0:
+			pivotNode.balance = 1
+			pivotNode.right.balance = -1
+			decreaseBalanceAabove(pivotNode.right)
+		else:
+			pivotNode.balance = 0
+			pivotNode.right.balance = 0
+			// This tree is now one less in height
+			decreaseBalanaceAbove(pivotNode)
+		rotateLeft(pivotNode)
+	if pivotNode.balance === -2:
+		if pivotNode.left.balance === -1:
+			pivotNode.left.balance = 0
+			pivotNode.left.right.balance = -1
+			rotateLeft(pivotNode.left)
+		if pivotNode.left.balance === 0:
+			pivotNode.balance = -1
+			pivotNode.left.balance =1
+			decreaseBalanceAabove(pivotNode.left)
+		else:
+			pivotNode.balance = 0
+			pivotNode.left.blance = 0
+			// This tree is now one less in height
+			decreaseBalanaceAbove(pivotNode)
+		rotateRight(pivotNode)
+	rebalance(pivotNode.parent)

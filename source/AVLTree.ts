@@ -66,9 +66,6 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
   public getRoot(): AVLTreeNode<E> | undefined {
     return this.root;
   }
-  public sameHeightSubNode(parentNode: AVLTreeNode<E>): boolean {
-    return (!parentNode.hasLeft() && !parentNode.hasRight()) || (parentNode.hasLeft() && parentNode.hasRight() && parentNode.getLeft()?.getHeight() === parentNode.getRight()?.getHeight())
-  }
   /**
    * Time complexity: O(Log2(n)) where n is the number of nodes.
    * 
@@ -76,53 +73,77 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
    * @returns Returns the removed node from the tree.
    */
   public removeItem(value: E): AVLTreeNode<E> | undefined {
-    // console.log("Deleting Value: " + value.toPrint())
-    // console.log("Tree before delete: \n" + this.toPrint())
+    // If the item does not exist, return nothing
     if (this.getItem(value) == undefined) {
       return undefined;
     } else {
+      // Find the node to remove in o(1)
       const nodeToRemove: AVLTreeNode<E> = this.getItem(value) as AVLTreeNode<E>;
-      nodeToRemove.decreaseAmount();
+      // Decrease the storage amount at this node
       if (nodeToRemove.getAmount() != 0) {
+        // If it is not zero, do not remove this node from the tree.
         return nodeToRemove;
       } else {
-        let currentNode: AVLTreeNode<E> | undefined = nodeToRemove
-        // console.log("Current Node: "+currentNode.toPrint())
-        while (currentNode != undefined
-          && (currentNode === this.root || (
-            currentNode.hasParent()
-            && currentNode.getHeight() === (currentNode.getParent() as AVLTreeNode<E>).getHeight() - 1)
-            && (!this.sameHeightSubNode(currentNode.getParent() as AVLTreeNode<E>)))) {
 
-          if (currentNode.getHeight() != 0) {
-            currentNode.decreaseHeight();
+        /**
+         * Deal with the nodes above nodeToRemove
+         */
+
+        if (nodeToRemove.hasParent()) {
+          let parent: AVLTreeNode<E> = nodeToRemove.getParent() as AVLTreeNode<E>
+          // "On your Left" - Captain America: The Winter Soldier, 2014
+          if (parent.getLeft() === nodeToRemove) {
+            if (parent.getBalance() === 0 || parent.getBalance() === -1) {
+              this.decreaseBalanceAbove(nodeToRemove)
+            } else {
+              parent.setBalance(parent.getBalance() + 1)
+            }
+          } else if (parent.getRight() === nodeToRemove) {
+            if (parent.getBalance() === 0 || parent.getBalance() === 1) {
+              this.decreaseBalanceAbove(nodeToRemove)
+            } else {
+              parent.setBalance(parent.getBalance() - 1)
+            }
           }
-          currentNode = currentNode.getParent();
         }
+
+        // If the node needs to be removed, pick from conditations based upon its sub-nodes
+        // "On your Left" - Captain America: The Winter Soldier, 2014
         if (nodeToRemove.hasRight() && nodeToRemove.hasLeft()) {
+          // Sub tree reference is the node that connects nodeToRemove to the tree. 
           let subTreeParentReference = nodeToRemove === this.root ? this.root as AVLTreeNode<E> : nodeToRemove.getParent() as AVLTreeNode<E>;
-          let rightNode = nodeToRemove.getRight();
-          let leftMostNode: AVLTreeNode<E> | undefined = rightNode?.getLeft();
+          // Grab the right node of the tree.
+          let rightNode = nodeToRemove.getRight() as AVLTreeNode<E>;
+          // Grab the lowest value on the right sub tree of node to remove in a while loop.
+          // "On your Left" - Captain America: The Winter Soldier, 2014
+          let leftMostNode: AVLTreeNode<E> | undefined = rightNode.getLeft();
           while (leftMostNode != undefined && leftMostNode.hasLeft()) {
+            // "On your Left" - Captain America: The Winter Soldier, 2014
             leftMostNode = leftMostNode.getLeft() as AVLTreeNode<E>;
           }
           let newParentOfLeftBranch = leftMostNode === undefined ? rightNode : leftMostNode;
-          nodeToRemove.getLeft()?.setParent(newParentOfLeftBranch as AVLTreeNode<E>);
+          // Since this branch is shifting up, this makes the left subtree one taller. Only happens when NodeToRemove has two children.
+          newParentOfLeftBranch.setBalance(nodeToRemove.getBalance() - 1);
+          (nodeToRemove.getLeft() as AVLTreeNode<E>).setParent(newParentOfLeftBranch as AVLTreeNode<E>);
           if (nodeToRemove === this.root) {
-            this.root = rightNode;
+            this.root = newParentOfLeftBranch;
           } else {
             if (subTreeParentReference.getLeft() === nodeToRemove) {
-              subTreeParentReference.setLeft(rightNode);
+              // "On your Left" - Captain America: The Winter Soldier, 2014
+              subTreeParentReference.setLeft(newParentOfLeftBranch);
             } else {
-              subTreeParentReference.setRight(rightNode);
+              subTreeParentReference.setRight(newParentOfLeftBranch);
             }
           }
         } else if (nodeToRemove.hasRight() && !nodeToRemove.hasLeft()) {
+          // The parent of the node to remove.
           let subTreeParentReference = nodeToRemove === this.root ? this.root as AVLTreeNode<E> : nodeToRemove.getParent() as AVLTreeNode<E>;
           if (nodeToRemove === this.root) {
             this.root = nodeToRemove.getRight();
           } else {
+            // Shift the right most not up to the position of node to remove.
             if (subTreeParentReference.getLeft() === nodeToRemove) {
+              // "On your Left" - Captain America: The Winter Soldier, 2014
               subTreeParentReference.setLeft(nodeToRemove.getRight());
             } else {
               subTreeParentReference.setRight(nodeToRemove.getRight());
@@ -134,6 +155,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
             this.root = nodeToRemove.getLeft();
           } else {
             if (subTreeParentReference.getLeft() === nodeToRemove) {
+              // "On your Left" - Captain America: The Winter Soldier, 2014
               subTreeParentReference.setLeft(nodeToRemove.getLeft());
             } else {
               subTreeParentReference.setRight(nodeToRemove.getLeft());
@@ -141,17 +163,25 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
           }
         } else if (!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove === this.root) {
           this.root = undefined;
+          // If this node has no right or left to move up to its position, but t has a parent
         } else if (!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove.getParent() != undefined) {
           const subTreeParentReference = (nodeToRemove.getParent() as AVLTreeNode<E>);
           if (subTreeParentReference.getLeft() === nodeToRemove) {
+            // "On your Left" - Captain America: The Winter Soldier, 2014
             subTreeParentReference.setLeft(undefined);
-          } else if (subTreeParentReference.getRight() === nodeToRemove) {
+          } else {
             subTreeParentReference.setRight(undefined);
           }
         }
       }
-      this.rebalance(nodeToRemove.getParent() as AVLTreeNode<E>)
+      console.log("Node After Removal")
+      console.log(this.toPrint())
+      if (nodeToRemove.getParent() !== undefined) {
+        this.rebalance(nodeToRemove.getParent() as AVLTreeNode<E>)
+      }
       this.hashMap.delete(value.preHash());
+      console.log("Node After Rebalance")
+      console.log(this.toPrint())
       return nodeToRemove;
     }
   }
@@ -183,6 +213,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
     if (value === undefined) {
       throw new Error("Undefined Value to Add");
     }
+    // // console.log("ADDING VALUE: " + value.toPrint())
     const newNode: AVLTreeNode<E> = new AVLTreeNode<E>(undefined, undefined, undefined, value);
     if (this.root === undefined) {
       this.root = newNode;
@@ -204,9 +235,11 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
         if (current.hasLeft()) {
           current = current.getLeft() as AVLTreeNode<E>;
         } else {
+          // "On your Left" - Captain America: The Winter Soldier, 2014
           current.setLeft(newNode);
-          this.increaseHeightAbove(newNode);
-          // console.log("Before rebalance: \n"+this.toPrint())
+          // // console.log("Increasing Height Above")
+          this.increaseBalanceAbove(newNode);
+          // // console.log("Left, Before rebalance: \n" + this.toPrint())
           this.rebalance(newNode)
           return newNode;
         }
@@ -215,8 +248,9 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
           current = current.getRight() as AVLTreeNode<E>;
         } else {
           current.setRight(newNode);
-          this.increaseHeightAbove(newNode)
-          // console.log("Before rebalance: \n"+this.toPrint())
+          // // console.log("Decreasing Height Above")
+          this.increaseBalanceAbove(newNode)
+          // // console.log("Right, Before rebalance: \n" + this.toPrint())
           this.rebalance(newNode)
           return newNode;
         }
@@ -225,60 +259,43 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
       }
     }
   }
-  /**
-   * @private
-   * 
-   * Time complexity: O(Log2(n)) where n is the number of nodes.
-   * 
-   * Increases the longest sub tree height of every node above the current node, excluding the current node.
-   * 
-   * @param node 
-   */
-  private increaseHeightAbove(node: AVLTreeNode<E>): void {
+
+
+  increaseBalanceAbove(node: AVLTreeNode<E>) {
+    // console.log("Called Increase Height above")
+    // console.log(node.toPrint())
     let current: AVLTreeNode<E> = node;
     while (current.getParent() != undefined) {
       let parent: AVLTreeNode<E> = current.getParent() as AVLTreeNode<E>;
-      parent.increaseHeight()
-      current = parent;
+      if (parent.getLeft() === current) {
+        // console.log("Decreased Balance")
+        parent.decreaseBalance()
+      } else {
+        // console.log("Increased Balance")
+        parent.increaseBalance()
+      }
+      current = parent
     }
   }
 
-  /**
-   * @private
-   * 
-   * Time complexity: O(Log2(n)) where n is the number of nodes.
-   * 
-   * Decreases the longest sub tree height of every node above the current node, excluding the current node.
-   * 
-   * @param node 
-   */
-  private decreaseHeightAbove(node: AVLTreeNode<E>): void {
+
+  decreaseBalanceAbove(node: AVLTreeNode<E>) {
+    // console.log("Called Decrease Above")
+    // console.log("Node: " + node.toPrint())
     let current: AVLTreeNode<E> = node;
     while (current.getParent() != undefined) {
       let parent: AVLTreeNode<E> = current.getParent() as AVLTreeNode<E>;
-      parent.decreaseHeight()
-      current = parent;
+      if (parent.getLeft() === current) {
+        // console.log("parent.increaseBalance")
+        parent.increaseBalance()
+      } else {
+        // console.log("parent.decreaseBalance")
+        parent.decreaseBalance()
+      }
+      current = parent
     }
   }
-  /**
-   * @private
-   * 
-   * Time complexity: O(1)
-   * 
-   * Calculates the balance factor of the node via left - right height.
-   * 
-   * @param currentNode 
-   * @returns A value of -2 means the right branch is too deep (rotate left), and a value of 2 means left branch is too deep (rotate right).
-   */
-  private balanceFactor(currentNode: AVLTreeNode<E> | undefined): number {
-    if (currentNode === undefined) {
-      return -1;
-    }
-    let leftHeight = currentNode.hasLeft() ? currentNode.getLeft()?.getHeight() as number : -1;
-    let rightHeight = currentNode.getRight() ? currentNode.getRight()?.getHeight() as number : -1;
-    const BF = leftHeight - rightHeight
-    return BF
-  }
+
   /**
    * @private
    * 
@@ -288,43 +305,45 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
    * 
    * @param currentNode Node to be rebalanced.
    */
-  private rebalance(currentNode: AVLTreeNode<E>) {
-    // console.log("-------REBALANCE----------")
-    // console.log("Current Node")
-    // console.log(currentNode.toPrint())
-    if (currentNode === undefined) {
-      return;
-    }
-    const BF = this.balanceFactor(currentNode)
-    // console.log("Is Root: " + (currentNode === this.root))
-    // console.log("BF: " + BF)
-    if (BF > 1) {
-      // console.log("Balance Factor of Right: " + this.balanceFactor(currentNode.getRight()))
-      if (this.balanceFactor(currentNode.getRight()) < 0) {
-        // left zig zag 
-        // console.log("Double RL")
-        this.rotateLeft(currentNode.getLeft() as AVLTreeNode<E>, true);
-        // console.log(this.toPrint())
+  private rebalance(pivotNode: AVLTreeNode<E>) {
+    // console.log("Rebalance at: " + pivotNode.toPrint())
+    if (pivotNode.getBalance() === 2) {
+      if (pivotNode.getRight()?.getBalance() === -1) {
+        pivotNode.getRight()?.setBalance(0)
+        pivotNode.getRight()?.getLeft()?.setBalance(1)
       }
-      // console.log("RR")
-      this.rotateRight(currentNode)
-      // console.log(this.toPrint())
-    } else if (BF < -1) {
-      // console.log("Balance Factor of left: " + this.balanceFactor(currentNode.getLeft()))
-      if (this.balanceFactor(currentNode.getLeft()) > 0) {
-        // right zig-zag
-        // console.log("Double RR")
-        this.rotateRight(currentNode.getRight() as AVLTreeNode<E>, true);
-        // console.log(this.toPrint())
+      if (pivotNode.getRight()?.getBalance() === 0) {
+        // console.log("pivotNode.getRight()?.getBalance() === 0")
+        pivotNode.setBalance(1)
+        pivotNode.getRight()?.setBalance(-1)
+        this.decreaseBalanceAbove(pivotNode)
+      } else {
+        pivotNode.setBalance(0)
+        pivotNode.getRight()?.setBalance(0)
+        this.decreaseBalanceAbove(pivotNode)
       }
-      // console.log("RL")
-      this.rotateLeft(currentNode)
-      // console.log(this.toPrint())
+      this.rotateLeft(pivotNode)
+    } else if (pivotNode.getBalance() === -2) {
+      if (pivotNode.getLeft()?.getBalance() === 1) {
+        pivotNode.getLeft()?.setBalance(0)
+        pivotNode.getLeft()?.getRight()?.setBalance(-1)
+      }
+      if (pivotNode.getLeft()?.getBalance() === 0) {
+        // console.log("pivotNode.getLeft()?.getBalance() === 0")
+        pivotNode.setBalance(-1)
+        pivotNode.getLeft()?.setBalance(1)
+        this.decreaseBalanceAbove(pivotNode)
+      } else {
+        pivotNode.setBalance(0)
+        pivotNode.getLeft()?.setBalance(0)
+      }
+      this.decreaseBalanceAbove(pivotNode)
+      this.rotateRight(pivotNode)
     }
-    // console.log("After: \n" + this.toPrint())
-    if (currentNode.hasParent()) {
-      // console.log("^ Calling on parent\n----\n")
-      this.rebalance(currentNode.getParent() as AVLTreeNode<E>)
+    // console.log("During Rebalance")
+    // console.log(this.toPrint())
+    if (pivotNode.getParent() != undefined) {
+      this.rebalance(pivotNode.getParent() as AVLTreeNode<E>)
     }
   }
 
@@ -337,37 +356,21 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
    * 
    * @param currentParent 
    */
-  private rotateLeft(currentParent: AVLTreeNode<E>, zigZag: boolean = false) {
-    const newParent: AVLTreeNode<E> = currentParent.getRight() as AVLTreeNode<E>;
-    if (newParent.hasLeft() && (newParent.getLeft() as AVLTreeNode<E>).getHeight() === newParent.getHeight()-1) {
-      zigZag = true;
-    }
-    if (currentParent.hasParent()) {
-      let parentOfCurrent = currentParent.getParent() as AVLTreeNode<E>;
-      const isLeft: boolean = parentOfCurrent.getLeft() === currentParent;
-      if (isLeft) {
-        parentOfCurrent.setLeft(newParent)
-      } else {
-        parentOfCurrent.setRight(newParent)
-      }
-    }
-    currentParent.setRight(newParent.getLeft());
+  rotateLeft(currentParent: AVLTreeNode<E>) {
+    let rightChild = currentParent.getRight() as AVLTreeNode<E>;
     if (currentParent === this.root) {
-      this.root = newParent
-      newParent.setParent(undefined)
-    } else {
-      newParent.setParent(currentParent.getParent())
+      this.root = rightChild
+      rightChild.setParent(undefined)
+    } else if ((currentParent.getParent() as AVLTreeNode<E>).getLeft() as AVLTreeNode<E> === currentParent) {
+      // "On your Left" - Captain America: The Winter Soldier, 2014
+      currentParent.getParent()?.setLeft(rightChild)
+    } else if ((currentParent.getParent() as AVLTreeNode<E>).getRight() as AVLTreeNode<E> === currentParent) {
+      currentParent.getParent()?.setRight(rightChild)
     }
-    let tempNumber = currentParent.getHeight() - (zigZag ? 0 : 1);
-    currentParent.setHeight(newParent.getHeight() - (zigZag ? 0 : 1))
-    newParent.setHeight(tempNumber)
-    newParent.setLeft(currentParent);
-    // this.updateHeight(newParent as AVLTreeNode<E>)
-    // console.log("IsZigZag: "+zigZag)
-    if (!zigZag) {
-      this.decreaseHeightAbove(newParent)
-    }
-
+    let transferChild = rightChild.getLeft() as AVLTreeNode<E> | undefined;
+    currentParent.setRight(transferChild);
+    // "On your Left" - Captain America: The Winter Soldier, 2014
+    rightChild.setLeft(currentParent);
   }
   /**
    * @private
@@ -378,48 +381,21 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
    * 
    * @param currentParent 
    */
-  private rotateRight(currentParent: AVLTreeNode<E>, zigZag: boolean = false) {
-    const newParent: AVLTreeNode<E> = currentParent.getLeft() as AVLTreeNode<E>;
-    if (newParent.hasRight() && (newParent.getRight() as AVLTreeNode<E>).getHeight() === newParent.getHeight()-1) {
-      zigZag = true;
-    }
-    if (currentParent.hasParent()) {
-      let parentOfCurrent = currentParent.getParent() as AVLTreeNode<E>;
-      const isLeft: boolean = parentOfCurrent.getLeft() === currentParent;
-      if (isLeft) {
-        parentOfCurrent.setLeft(newParent)
-      } else {
-        parentOfCurrent.setRight(newParent)
-      }
-    }
-    currentParent.setLeft(newParent.getRight())
+  rotateRight(currentParent: AVLTreeNode<E>) {
+    let leftChild = currentParent.getLeft() as AVLTreeNode<E>;
     if (currentParent === this.root) {
-      this.root = newParent
-      newParent.setParent(undefined)
-    } else {
-      newParent.setParent(currentParent.getParent())
+      this.root = leftChild
+      leftChild.setParent(undefined)
+    } else if ((currentParent.getParent() as AVLTreeNode<E>).getLeft() as AVLTreeNode<E> === currentParent) {
+      // "On your Left" - Captain America: The Winter Soldier, 2014
+      currentParent.getParent()?.setLeft(leftChild)
+    } else if ((currentParent.getParent() as AVLTreeNode<E>).getRight() as AVLTreeNode<E> === currentParent) {
+      currentParent.getParent()?.setRight(leftChild)
     }
-    let tempNumber = currentParent.getHeight() - (zigZag ? 0 : 1);
-    currentParent.setHeight(newParent.getHeight() - (zigZag ? 0 : 1));
-    newParent.setHeight(tempNumber)
-    newParent.setRight(currentParent);
-    // this.updateHeight(newParent as AVLTreeNode<E>)
-    if (!zigZag) {
-      this.decreaseHeightAbove(newParent)
-    }
-  }
-  /**
-   * Time Complexity: O(n) where n is the number of nodes. However, this function is only called on the rotated section of the tree, preventing O(n) behavior on large data sets. 
-   * 
-   * @param parentNode 
-   * @returns Current height of this node.
-   */
-  private updateHeight(parentNode: AVLTreeNode<E>): number {
-    var leftHeight = parentNode.hasLeft() ? this.updateHeight(parentNode.getLeft() as AVLTreeNode<E>) : 0
-    var rightHeight = parentNode.hasRight() ? this.updateHeight(parentNode.getRight() as AVLTreeNode<E>) : 0
-    var newHeight = rightHeight > leftHeight ? rightHeight : leftHeight
-    parentNode.setHeight(newHeight);
-    return 1 + (rightHeight > leftHeight ? rightHeight : leftHeight);
+    let transferChild = leftChild.getRight() as AVLTreeNode<E> | undefined;
+    // "On your Left" - Captain America: The Winter Soldier, 2014
+    currentParent.setLeft(transferChild);
+    leftChild.setRight(currentParent)
   }
 
   /**
@@ -459,5 +435,68 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
   }
   getHashMap(): Map<E, AVLTreeNode<E>> {
     return this.hashMap;
+  }
+  getDeepestNode(node: AVLTreeNode<E>, deepest: number[], current: number[]): void {
+    // // console.log(node.toPrint())
+    // // console.log(deepest, current)
+    if (node.hasLeft()) {
+      // // console.log("Node Has Left")
+      let newCurrent = [...current]
+      newCurrent[0] += 1;
+      if (newCurrent[0] > deepest[0]) {
+        deepest[0] = newCurrent[0]
+      }
+      // // console.log('Going Left')
+      this.getDeepestNode(node.getLeft() as AVLTreeNode<E>, deepest, [...newCurrent])
+    }
+    if (node.hasRight()) {
+      // // console.log("Node Has Left")
+      let newCurrent = [...current]
+      newCurrent[0] += 1;
+      if (newCurrent[0] > deepest[0]) {
+        deepest[0] = newCurrent[0]
+      }
+      // // console.log('Going Right')
+      this.getDeepestNode(node.getRight() as AVLTreeNode<E>, deepest, [...newCurrent])
+    }
+  }
+  #confirmRotationsRecursive(node: AVLTreeNode<E>): AVLTreeNode<E> | undefined {
+    let leftDeepestRef = [1]
+    let rightDeepestRef = [1]
+    if (node.hasLeft()) {
+      this.getDeepestNode(node.getLeft() as AVLTreeNode<E>, leftDeepestRef, [1])
+    } else {
+      leftDeepestRef = [0]
+    }
+    // // console.log("---------")
+    if (node.hasRight()) {
+      this.getDeepestNode(node.getRight() as AVLTreeNode<E>, rightDeepestRef, [1])
+    } else {
+      rightDeepestRef = [0]
+    }
+    let left = leftDeepestRef[0]
+    let right = rightDeepestRef[0]
+    if (right - left != node.getBalance()) {
+      // // console.log("Left, Right")
+      // // console.log(left, right)
+      // // console.log("At Node")
+      // // console.log(node.toPrint())
+      throw new Error()
+      return node;
+    }
+    if (node.hasLeft()) {
+      this.#confirmRotationsRecursive(node.getLeft() as AVLTreeNode<E>)
+    }
+    if (node.hasRight()) {
+      this.#confirmRotationsRecursive(node.getRight() as AVLTreeNode<E>)
+    }
+    return undefined
+  }
+  confirmRotations(): AVLTreeNode<E> | undefined {
+    if (this.root === undefined) {
+      return undefined
+    } else {
+      return this.#confirmRotationsRecursive(this.root as AVLTreeNode<E>)
+    }
   }
 }

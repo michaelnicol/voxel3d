@@ -5,7 +5,7 @@ export class AVLTreeNode<E extends ValidObject> implements ValidObject {
   private parent?: AVLTreeNode<E>;
   private value?: E;
   private amount = 1;
-  private height: number = 0;
+  private balance: number = 0;
   constructor(left: AVLTreeNode<E> | undefined, parent: AVLTreeNode<E> | undefined, right: AVLTreeNode<E> | undefined, value: E) {
     this.left = left;
     this.right = right;
@@ -13,26 +13,20 @@ export class AVLTreeNode<E extends ValidObject> implements ValidObject {
     this.value = value;
   }
 
-  setHeight(h : number) {
-    this.height = h;
-    if (h < 0) {
-      throw new Error(`Negative Height: ${this.height}`);
-    }
+  setBalance(h : number) {
+    this.balance = h;
   }
 
-  getHeight(): number {
-    return this.height;
+  getBalance(): number {
+    return this.balance;
   }
 
-  increaseHeight() {
-    this.height += 1;
+  increaseBalance() {
+    this.balance += 1;
   }
 
-  decreaseHeight() {
-    this.height -= 1;
-    if (this.height < 0) {
-      throw new Error(`Negative Height: ${this.height}`)
-    }
+  decreaseBalance() {
+    this.balance -= 1;
   }
 
   toPrint(): string {
@@ -48,7 +42,7 @@ export class AVLTreeNode<E extends ValidObject> implements ValidObject {
     if (this.hasParent()) {
       parentPrint = this.getParent()?.getValue() === undefined ? parentPrint : (this.getParent()?.getValue()?.toPrint() as string);
     }
-    return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}, H: ${this.height}>`
+    return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}, B: ${this.balance}>`
   }
 
   // Interface

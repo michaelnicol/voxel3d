@@ -5,13 +5,15 @@ import { Point2D } from "./Point2D.js";
 import { Point3D } from "./Point3D.js";
 import { Utilities } from "./Utilities.js";
 
-export class AVLObject<E extends Point> implements ValidObject {
+export class AVLObject<E extends Point, K extends Point> implements ValidObject {
    internalStorage: VoxelStorage<E>;
    pointFactoryMethod: Function;
+   dimensionLowerFactoryMethod: Function;
    maxDimensions: number;
-   constructor(maxDimensions: number, pointFactoryMethod: Function) {
+   constructor(maxDimensions: number, pointFactoryMethod: Function, dimensionLowerFactoryMethod: Function) {
       this.maxDimensions = maxDimensions;
       this.pointFactoryMethod = pointFactoryMethod;
+      this.dimensionLowerFactoryMethod = dimensionLowerFactoryMethod;
       this.internalStorage = new VoxelStorage<E>(maxDimensions, pointFactoryMethod)
    }
 
@@ -39,14 +41,14 @@ export class AVLObject<E extends Point> implements ValidObject {
       return this.internalStorage.getCoordinateList(duplicates);
    }
 
-   addCoordinates(coordinatesToAdd: E[], allowDuplicates: boolean): AVLObject<E> {
+   addCoordinates(coordinatesToAdd: E[], allowDuplicates: boolean): AVLObject<E, K> {
       for (let c of coordinatesToAdd) {
          this.internalStorage.addCoordinate(c, allowDuplicates);
       }
       return this;
    }
 
-   removeVoxels(coordinatesToRemove: E[]): AVLObject<E> {
+   removeVoxels(coordinatesToRemove: E[]): AVLObject<E,K> {
       let removeRanges: number[] = [];
       for (let c of coordinatesToRemove) {
          removeRanges.push(...this.internalStorage.removeCoordinate(c, false));
@@ -55,27 +57,19 @@ export class AVLObject<E extends Point> implements ValidObject {
       return this;
    }
 
-   static getSortedRange(internalStorage: VoxelStorage<Point3D>): [Map<number, Point2D[]>, number[]] {
-      let rangeCoordinates = new Map<number, Point2D[]>();
-      let points: Point3D[] = internalStorage.getCoordinateList(false);
-      let storageRange: Map<number, number[]> = internalStorage.dimensionRange;
-      let longestRangeKeys = internalStorage.getSortedRangeIndices()
-      let longestRangeKey = longestRangeKeys[0]
+   getSortedRange(targetDimension: number): [Map<number, K[]>, number[]] {
+      let rangeCoordinates = new Map<number, K[]>();
+      let points: E[] = this.internalStorage.getCoordinateList(false);
+      let storageRange: Map<number, number[]> = this.internalStorage.dimensionRange;
+      let longestRangeKeys = this.internalStorage.getSortedRangeIndices()
+      let longestRangeKey = longestRangeKeys[targetDimension]
       // needs to be a sorted list. Maybe range should produce it.
-      let longestRangeSize = 0;
       for (let i = (storageRange.get(longestRangeKey) as number[])[0]; i <= (storageRange.get(longestRangeKey) as number[])[2]; i++) {
          rangeCoordinates.set(i, [])
       }
-      // Storage best case is O(0.66N) = O(N), worst case is still O(N)
+      // Storage best case is O(0.5N) = O(N), worst case is still O(N)
       for (let coord of points) {
-         const { arr } = coord;
-         if (longestRangeKey === 0) {
-            (rangeCoordinates.get(arr[0]) as Point2D[]).push(new Point2D(arr[1], arr[2]))
-         } else if (longestRangeKey === 1) {
-            (rangeCoordinates.get(arr[1]) as Point2D[]).push(new Point2D(arr[0], arr[2]))
-         } else if (longestRangeKey === 2) {
-            (rangeCoordinates.get(arr[2]) as Point2D[]).push(new Point2D(arr[0], arr[1]))
-         }
+         (rangeCoordinates.get(coord.arr[longestRangeKey]) as K[]).push(this.dimensionLowerFactoryMethod([...coord.arr].filter((v, i) => i != longestRangeKey)))
       }
       for (let [key, value] of rangeCoordinates) {
          value.sort((a, b) => Utilities.pythagorean(a, b))
@@ -91,7 +85,7 @@ export class AVLObject<E extends Point> implements ValidObject {
       return mapToReturn;
    }
 
-   preHash(): AVLObject<E> {
+   preHash(): AVLObject<E, K> {
       return this;
    }
 

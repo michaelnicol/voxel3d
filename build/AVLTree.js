@@ -63,9 +63,6 @@ export class AVLTree {
     getRoot() {
         return this.root;
     }
-    sameHeightSubNode(parentNode) {
-        return (!parentNode.hasLeft() && !parentNode.hasRight()) || (parentNode.hasLeft() && parentNode.hasRight() && parentNode.getLeft()?.getHeight() === parentNode.getRight()?.getHeight());
-    }
     /**
      * Time complexity: O(Log2(n)) where n is the number of nodes.
      *
@@ -73,57 +70,83 @@ export class AVLTree {
      * @returns Returns the removed node from the tree.
      */
     removeItem(value) {
-        // console.log("Deleting Value: " + value.toPrint())
-        // console.log("Tree before delete: \n" + this.toPrint())
+        // If the item does not exist, return nothing
         if (this.getItem(value) == undefined) {
             return undefined;
         }
         else {
+            // Find the node to remove in o(1)
             const nodeToRemove = this.getItem(value);
-            nodeToRemove.decreaseAmount();
+            // Decrease the storage amount at this node
             if (nodeToRemove.getAmount() != 0) {
+                // If it is not zero, do not remove this node from the tree.
                 return nodeToRemove;
             }
             else {
-                let currentNode = nodeToRemove;
-                // console.log("Current Node: "+currentNode.toPrint())
-                while (currentNode != undefined
-                    && (currentNode === this.root || (currentNode.hasParent()
-                        && currentNode.getHeight() === currentNode.getParent().getHeight() - 1)
-                        && (!this.sameHeightSubNode(currentNode.getParent())))) {
-                    if (currentNode.getHeight() != 0) {
-                        currentNode.decreaseHeight();
+                /**
+                 * Deal with the nodes above nodeToRemove
+                 */
+                if (nodeToRemove.hasParent()) {
+                    let parent = nodeToRemove.getParent();
+                    // "On your Left" - Captain America: The Winter Soldier, 2014
+                    if (parent.getLeft() === nodeToRemove) {
+                        if (parent.getBalance() === 0 || parent.getBalance() === -1) {
+                            this.decreaseBalanceAbove(nodeToRemove);
+                        }
+                        else {
+                            parent.setBalance(parent.getBalance() + 1);
+                        }
                     }
-                    currentNode = currentNode.getParent();
+                    else if (parent.getRight() === nodeToRemove) {
+                        if (parent.getBalance() === 0 || parent.getBalance() === 1) {
+                            this.decreaseBalanceAbove(nodeToRemove);
+                        }
+                        else {
+                            parent.setBalance(parent.getBalance() - 1);
+                        }
+                    }
                 }
+                // If the node needs to be removed, pick from conditations based upon its sub-nodes
+                // "On your Left" - Captain America: The Winter Soldier, 2014
                 if (nodeToRemove.hasRight() && nodeToRemove.hasLeft()) {
+                    // Sub tree reference is the node that connects nodeToRemove to the tree. 
                     let subTreeParentReference = nodeToRemove === this.root ? this.root : nodeToRemove.getParent();
+                    // Grab the right node of the tree.
                     let rightNode = nodeToRemove.getRight();
-                    let leftMostNode = rightNode?.getLeft();
+                    // Grab the lowest value on the right sub tree of node to remove in a while loop.
+                    // "On your Left" - Captain America: The Winter Soldier, 2014
+                    let leftMostNode = rightNode.getLeft();
                     while (leftMostNode != undefined && leftMostNode.hasLeft()) {
+                        // "On your Left" - Captain America: The Winter Soldier, 2014
                         leftMostNode = leftMostNode.getLeft();
                     }
                     let newParentOfLeftBranch = leftMostNode === undefined ? rightNode : leftMostNode;
-                    nodeToRemove.getLeft()?.setParent(newParentOfLeftBranch);
+                    // Since this branch is shifting up, this makes the left subtree one taller. Only happens when NodeToRemove has two children.
+                    newParentOfLeftBranch.setBalance(nodeToRemove.getBalance() - 1);
+                    nodeToRemove.getLeft().setParent(newParentOfLeftBranch);
                     if (nodeToRemove === this.root) {
-                        this.root = rightNode;
+                        this.root = newParentOfLeftBranch;
                     }
                     else {
                         if (subTreeParentReference.getLeft() === nodeToRemove) {
-                            subTreeParentReference.setLeft(rightNode);
+                            // "On your Left" - Captain America: The Winter Soldier, 2014
+                            subTreeParentReference.setLeft(newParentOfLeftBranch);
                         }
                         else {
-                            subTreeParentReference.setRight(rightNode);
+                            subTreeParentReference.setRight(newParentOfLeftBranch);
                         }
                     }
                 }
                 else if (nodeToRemove.hasRight() && !nodeToRemove.hasLeft()) {
+                    // The parent of the node to remove.
                     let subTreeParentReference = nodeToRemove === this.root ? this.root : nodeToRemove.getParent();
                     if (nodeToRemove === this.root) {
                         this.root = nodeToRemove.getRight();
                     }
                     else {
+                        // Shift the right most not up to the position of node to remove.
                         if (subTreeParentReference.getLeft() === nodeToRemove) {
+                            // "On your Left" - Captain America: The Winter Soldier, 2014
                             subTreeParentReference.setLeft(nodeToRemove.getRight());
                         }
                         else {
@@ -138,6 +161,7 @@ export class AVLTree {
                     }
                     else {
                         if (subTreeParentReference.getLeft() === nodeToRemove) {
+                            // "On your Left" - Captain America: The Winter Soldier, 2014
                             subTreeParentReference.setLeft(nodeToRemove.getLeft());
                         }
                         else {
@@ -147,19 +171,27 @@ export class AVLTree {
                 }
                 else if (!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove === this.root) {
                     this.root = undefined;
+                    // If this node has no right or left to move up to its position, but t has a parent
                 }
                 else if (!nodeToRemove.hasRight() && !nodeToRemove.hasLeft() && nodeToRemove.getParent() != undefined) {
                     const subTreeParentReference = nodeToRemove.getParent();
                     if (subTreeParentReference.getLeft() === nodeToRemove) {
+                        // "On your Left" - Captain America: The Winter Soldier, 2014
                         subTreeParentReference.setLeft(undefined);
                     }
-                    else if (subTreeParentReference.getRight() === nodeToRemove) {
+                    else {
                         subTreeParentReference.setRight(undefined);
                     }
                 }
             }
-            this.rebalance(nodeToRemove.getParent());
+            console.log("Node After Removal");
+            console.log(this.toPrint());
+            if (nodeToRemove.getParent() !== undefined) {
+                this.rebalance(nodeToRemove.getParent());
+            }
             this.hashMap.delete(value.preHash());
+            console.log("Node After Rebalance");
+            console.log(this.toPrint());
             return nodeToRemove;
         }
     }
@@ -191,6 +223,7 @@ export class AVLTree {
         if (value === undefined) {
             throw new Error("Undefined Value to Add");
         }
+        // // console.log("ADDING VALUE: " + value.toPrint())
         const newNode = new AVLTreeNode(undefined, undefined, undefined, value);
         if (this.root === undefined) {
             this.root = newNode;
@@ -214,9 +247,11 @@ export class AVLTree {
                     current = current.getLeft();
                 }
                 else {
+                    // "On your Left" - Captain America: The Winter Soldier, 2014
                     current.setLeft(newNode);
-                    this.increaseHeightAbove(newNode);
-                    // console.log("Before rebalance: \n"+this.toPrint())
+                    // // console.log("Increasing Height Above")
+                    this.increaseBalanceAbove(newNode);
+                    // // console.log("Left, Before rebalance: \n" + this.toPrint())
                     this.rebalance(newNode);
                     return newNode;
                 }
@@ -227,8 +262,9 @@ export class AVLTree {
                 }
                 else {
                     current.setRight(newNode);
-                    this.increaseHeightAbove(newNode);
-                    // console.log("Before rebalance: \n"+this.toPrint())
+                    // // console.log("Decreasing Height Above")
+                    this.increaseBalanceAbove(newNode);
+                    // // console.log("Right, Before rebalance: \n" + this.toPrint())
                     this.rebalance(newNode);
                     return newNode;
                 }
@@ -238,58 +274,39 @@ export class AVLTree {
             }
         }
     }
-    /**
-     * @private
-     *
-     * Time complexity: O(Log2(n)) where n is the number of nodes.
-     *
-     * Increases the longest sub tree height of every node above the current node, excluding the current node.
-     *
-     * @param node
-     */
-    increaseHeightAbove(node) {
+    increaseBalanceAbove(node) {
+        // console.log("Called Increase Height above")
+        // console.log(node.toPrint())
         let current = node;
         while (current.getParent() != undefined) {
             let parent = current.getParent();
-            parent.increaseHeight();
+            if (parent.getLeft() === current) {
+                // console.log("Decreased Balance")
+                parent.decreaseBalance();
+            }
+            else {
+                // console.log("Increased Balance")
+                parent.increaseBalance();
+            }
             current = parent;
         }
     }
-    /**
-     * @private
-     *
-     * Time complexity: O(Log2(n)) where n is the number of nodes.
-     *
-     * Decreases the longest sub tree height of every node above the current node, excluding the current node.
-     *
-     * @param node
-     */
-    decreaseHeightAbove(node) {
+    decreaseBalanceAbove(node) {
+        // console.log("Called Decrease Above")
+        // console.log("Node: " + node.toPrint())
         let current = node;
         while (current.getParent() != undefined) {
             let parent = current.getParent();
-            parent.decreaseHeight();
+            if (parent.getLeft() === current) {
+                // console.log("parent.increaseBalance")
+                parent.increaseBalance();
+            }
+            else {
+                // console.log("parent.decreaseBalance")
+                parent.decreaseBalance();
+            }
             current = parent;
         }
-    }
-    /**
-     * @private
-     *
-     * Time complexity: O(1)
-     *
-     * Calculates the balance factor of the node via left - right height.
-     *
-     * @param currentNode
-     * @returns A value of -2 means the right branch is too deep (rotate left), and a value of 2 means left branch is too deep (rotate right).
-     */
-    balanceFactor(currentNode) {
-        if (currentNode === undefined) {
-            return -1;
-        }
-        let leftHeight = currentNode.hasLeft() ? currentNode.getLeft()?.getHeight() : -1;
-        let rightHeight = currentNode.getRight() ? currentNode.getRight()?.getHeight() : -1;
-        const BF = leftHeight - rightHeight;
-        return BF;
     }
     /**
      * @private
@@ -300,44 +317,48 @@ export class AVLTree {
      *
      * @param currentNode Node to be rebalanced.
      */
-    rebalance(currentNode) {
-        // console.log("-------REBALANCE----------")
-        // console.log("Current Node")
-        // console.log(currentNode.toPrint())
-        if (currentNode === undefined) {
-            return;
-        }
-        const BF = this.balanceFactor(currentNode);
-        // console.log("Is Root: " + (currentNode === this.root))
-        // console.log("BF: " + BF)
-        if (BF > 1) {
-            // console.log("Balance Factor of Right: " + this.balanceFactor(currentNode.getRight()))
-            if (this.balanceFactor(currentNode.getRight()) < 0) {
-                // left zig zag 
-                // console.log("Double RL")
-                this.rotateLeft(currentNode.getLeft(), true);
-                // console.log(this.toPrint())
+    rebalance(pivotNode) {
+        // console.log("Rebalance at: " + pivotNode.toPrint())
+        if (pivotNode.getBalance() === 2) {
+            if (pivotNode.getRight()?.getBalance() === -1) {
+                pivotNode.getRight()?.setBalance(0);
+                pivotNode.getRight()?.getLeft()?.setBalance(1);
             }
-            // console.log("RR")
-            this.rotateRight(currentNode);
-            // console.log(this.toPrint())
-        }
-        else if (BF < -1) {
-            // console.log("Balance Factor of left: " + this.balanceFactor(currentNode.getLeft()))
-            if (this.balanceFactor(currentNode.getLeft()) > 0) {
-                // right zig-zag
-                // console.log("Double RR")
-                this.rotateRight(currentNode.getRight(), true);
-                // console.log(this.toPrint())
+            if (pivotNode.getRight()?.getBalance() === 0) {
+                // console.log("pivotNode.getRight()?.getBalance() === 0")
+                pivotNode.setBalance(1);
+                pivotNode.getRight()?.setBalance(-1);
+                this.decreaseBalanceAbove(pivotNode);
             }
-            // console.log("RL")
-            this.rotateLeft(currentNode);
-            // console.log(this.toPrint())
+            else {
+                pivotNode.setBalance(0);
+                pivotNode.getRight()?.setBalance(0);
+                this.decreaseBalanceAbove(pivotNode);
+            }
+            this.rotateLeft(pivotNode);
         }
-        // console.log("After: \n" + this.toPrint())
-        if (currentNode.hasParent()) {
-            // console.log("^ Calling on parent\n----\n")
-            this.rebalance(currentNode.getParent());
+        else if (pivotNode.getBalance() === -2) {
+            if (pivotNode.getLeft()?.getBalance() === 1) {
+                pivotNode.getLeft()?.setBalance(0);
+                pivotNode.getLeft()?.getRight()?.setBalance(-1);
+            }
+            if (pivotNode.getLeft()?.getBalance() === 0) {
+                // console.log("pivotNode.getLeft()?.getBalance() === 0")
+                pivotNode.setBalance(-1);
+                pivotNode.getLeft()?.setBalance(1);
+                this.decreaseBalanceAbove(pivotNode);
+            }
+            else {
+                pivotNode.setBalance(0);
+                pivotNode.getLeft()?.setBalance(0);
+            }
+            this.decreaseBalanceAbove(pivotNode);
+            this.rotateRight(pivotNode);
+        }
+        // console.log("During Rebalance")
+        // console.log(this.toPrint())
+        if (pivotNode.getParent() != undefined) {
+            this.rebalance(pivotNode.getParent());
         }
     }
     /**
@@ -349,38 +370,23 @@ export class AVLTree {
      *
      * @param currentParent
      */
-    rotateLeft(currentParent, zigZag = false) {
-        const newParent = currentParent.getRight();
-        if (newParent.hasLeft() && newParent.getLeft().getHeight() === newParent.getHeight() - 1) {
-            zigZag = true;
-        }
-        if (currentParent.hasParent()) {
-            let parentOfCurrent = currentParent.getParent();
-            const isLeft = parentOfCurrent.getLeft() === currentParent;
-            if (isLeft) {
-                parentOfCurrent.setLeft(newParent);
-            }
-            else {
-                parentOfCurrent.setRight(newParent);
-            }
-        }
-        currentParent.setRight(newParent.getLeft());
+    rotateLeft(currentParent) {
+        let rightChild = currentParent.getRight();
         if (currentParent === this.root) {
-            this.root = newParent;
-            newParent.setParent(undefined);
+            this.root = rightChild;
+            rightChild.setParent(undefined);
         }
-        else {
-            newParent.setParent(currentParent.getParent());
+        else if (currentParent.getParent().getLeft() === currentParent) {
+            // "On your Left" - Captain America: The Winter Soldier, 2014
+            currentParent.getParent()?.setLeft(rightChild);
         }
-        let tempNumber = currentParent.getHeight() - (zigZag ? 0 : 1);
-        currentParent.setHeight(newParent.getHeight() - (zigZag ? 0 : 1));
-        newParent.setHeight(tempNumber);
-        newParent.setLeft(currentParent);
-        // this.updateHeight(newParent as AVLTreeNode<E>)
-        // console.log("IsZigZag: "+zigZag)
-        if (!zigZag) {
-            this.decreaseHeightAbove(newParent);
+        else if (currentParent.getParent().getRight() === currentParent) {
+            currentParent.getParent()?.setRight(rightChild);
         }
+        let transferChild = rightChild.getLeft();
+        currentParent.setRight(transferChild);
+        // "On your Left" - Captain America: The Winter Soldier, 2014
+        rightChild.setLeft(currentParent);
     }
     /**
      * @private
@@ -391,50 +397,23 @@ export class AVLTree {
      *
      * @param currentParent
      */
-    rotateRight(currentParent, zigZag = false) {
-        const newParent = currentParent.getLeft();
-        if (newParent.hasRight() && newParent.getRight().getHeight() === newParent.getHeight() - 1) {
-            zigZag = true;
-        }
-        if (currentParent.hasParent()) {
-            let parentOfCurrent = currentParent.getParent();
-            const isLeft = parentOfCurrent.getLeft() === currentParent;
-            if (isLeft) {
-                parentOfCurrent.setLeft(newParent);
-            }
-            else {
-                parentOfCurrent.setRight(newParent);
-            }
-        }
-        currentParent.setLeft(newParent.getRight());
+    rotateRight(currentParent) {
+        let leftChild = currentParent.getLeft();
         if (currentParent === this.root) {
-            this.root = newParent;
-            newParent.setParent(undefined);
+            this.root = leftChild;
+            leftChild.setParent(undefined);
         }
-        else {
-            newParent.setParent(currentParent.getParent());
+        else if (currentParent.getParent().getLeft() === currentParent) {
+            // "On your Left" - Captain America: The Winter Soldier, 2014
+            currentParent.getParent()?.setLeft(leftChild);
         }
-        let tempNumber = currentParent.getHeight() - (zigZag ? 0 : 1);
-        currentParent.setHeight(newParent.getHeight() - (zigZag ? 0 : 1));
-        newParent.setHeight(tempNumber);
-        newParent.setRight(currentParent);
-        // this.updateHeight(newParent as AVLTreeNode<E>)
-        if (!zigZag) {
-            this.decreaseHeightAbove(newParent);
+        else if (currentParent.getParent().getRight() === currentParent) {
+            currentParent.getParent()?.setRight(leftChild);
         }
-    }
-    /**
-     * Time Complexity: O(n) where n is the number of nodes. However, this function is only called on the rotated section of the tree, preventing O(n) behavior on large data sets.
-     *
-     * @param parentNode
-     * @returns Current height of this node.
-     */
-    updateHeight(parentNode) {
-        var leftHeight = parentNode.hasLeft() ? this.updateHeight(parentNode.getLeft()) : 0;
-        var rightHeight = parentNode.hasRight() ? this.updateHeight(parentNode.getRight()) : 0;
-        var newHeight = rightHeight > leftHeight ? rightHeight : leftHeight;
-        parentNode.setHeight(newHeight);
-        return 1 + (rightHeight > leftHeight ? rightHeight : leftHeight);
+        let transferChild = leftChild.getRight();
+        // "On your Left" - Captain America: The Winter Soldier, 2014
+        currentParent.setLeft(transferChild);
+        leftChild.setRight(currentParent);
     }
     /**
      * @private
@@ -473,5 +452,71 @@ export class AVLTree {
     }
     getHashMap() {
         return this.hashMap;
+    }
+    getDeepestNode(node, deepest, current) {
+        // // console.log(node.toPrint())
+        // // console.log(deepest, current)
+        if (node.hasLeft()) {
+            // // console.log("Node Has Left")
+            let newCurrent = [...current];
+            newCurrent[0] += 1;
+            if (newCurrent[0] > deepest[0]) {
+                deepest[0] = newCurrent[0];
+            }
+            // // console.log('Going Left')
+            this.getDeepestNode(node.getLeft(), deepest, [...newCurrent]);
+        }
+        if (node.hasRight()) {
+            // // console.log("Node Has Left")
+            let newCurrent = [...current];
+            newCurrent[0] += 1;
+            if (newCurrent[0] > deepest[0]) {
+                deepest[0] = newCurrent[0];
+            }
+            // // console.log('Going Right')
+            this.getDeepestNode(node.getRight(), deepest, [...newCurrent]);
+        }
+    }
+    #confirmRotationsRecursive(node) {
+        let leftDeepestRef = [1];
+        let rightDeepestRef = [1];
+        if (node.hasLeft()) {
+            this.getDeepestNode(node.getLeft(), leftDeepestRef, [1]);
+        }
+        else {
+            leftDeepestRef = [0];
+        }
+        // // console.log("---------")
+        if (node.hasRight()) {
+            this.getDeepestNode(node.getRight(), rightDeepestRef, [1]);
+        }
+        else {
+            rightDeepestRef = [0];
+        }
+        let left = leftDeepestRef[0];
+        let right = rightDeepestRef[0];
+        if (right - left != node.getBalance()) {
+            // // console.log("Left, Right")
+            // // console.log(left, right)
+            // // console.log("At Node")
+            // // console.log(node.toPrint())
+            throw new Error();
+            return node;
+        }
+        if (node.hasLeft()) {
+            this.#confirmRotationsRecursive(node.getLeft());
+        }
+        if (node.hasRight()) {
+            this.#confirmRotationsRecursive(node.getRight());
+        }
+        return undefined;
+    }
+    confirmRotations() {
+        if (this.root === undefined) {
+            return undefined;
+        }
+        else {
+            return this.#confirmRotationsRecursive(this.root);
+        }
     }
 }

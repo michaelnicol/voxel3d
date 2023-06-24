@@ -4,30 +4,24 @@ export class AVLTreeNode {
     parent;
     value;
     amount = 1;
-    height = 0;
+    balance = 0;
     constructor(left, parent, right, value) {
         this.left = left;
         this.right = right;
         this.parent = parent;
         this.value = value;
     }
-    setHeight(h) {
-        this.height = h;
-        if (h < 0) {
-            throw new Error(`Negative Height: ${this.height}`);
-        }
+    setBalance(h) {
+        this.balance = h;
     }
-    getHeight() {
-        return this.height;
+    getBalance() {
+        return this.balance;
     }
-    increaseHeight() {
-        this.height += 1;
+    increaseBalance() {
+        this.balance += 1;
     }
-    decreaseHeight() {
-        this.height -= 1;
-        if (this.height < 0) {
-            throw new Error(`Negative Height: ${this.height}`);
-        }
+    decreaseBalance() {
+        this.balance -= 1;
     }
     toPrint() {
         let leftPrint = "undefined";
@@ -42,7 +36,7 @@ export class AVLTreeNode {
         if (this.hasParent()) {
             parentPrint = this.getParent()?.getValue() === undefined ? parentPrint : this.getParent()?.getValue()?.toPrint();
         }
-        return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}, H: ${this.height}>`;
+        return `<L: ${leftPrint}, P: ${parentPrint}, V: {${this.getValue() === undefined ? "undefined" : this.getValue()?.toPrint()}}, A: ${this.amount}, R: ${rightPrint}, B: ${this.balance}>`;
     }
     // Interface
     preHash() {

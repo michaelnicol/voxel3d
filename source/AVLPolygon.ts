@@ -7,16 +7,16 @@ import { Point3D } from "./Point3D.js";
 import { Utilities } from "./Utilities.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 
-export class AVLPolygon3D<E extends Point3D> extends AVLObject<E> {
+export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E, K> {
    vertices: Point3D[] = []
-   constructor(pointFactoryMethod: Function, v: E[]) {
-      super(3, pointFactoryMethod)
+   constructor(pointFactoryMethod: Function, dimensionLowerFactoryMethod: Function, v: E[]) {
+      super(3, pointFactoryMethod, dimensionLowerFactoryMethod)
       for (let coord of v) {
          this.vertices.push(coord.clone())
          this.internalStorage.addCoordinate(coord, false)
       }
    }
-   createEdges(): AVLPolygon3D<E> {
+   createEdges(): AVLPolygon<E, K> {
       this.internalStorage = new VoxelStorage<E>(3, this.pointFactoryMethod)
       for (let i = 0; i < this.vertices.length; i++) {
          if (i + 1 === this.vertices.length) {
@@ -28,16 +28,23 @@ export class AVLPolygon3D<E extends Point3D> extends AVLObject<E> {
       return this;
    }
 
-   convert2Dto3D(p2d: Point2D, insertionIndex: number, insertionValue: number) {
-      let x = [...p2d.arr];
+   convertDimensionHigher(p: K, insertionIndex: number, insertionValue: number): E {
+      let x = [...p.arr];
       x.splice(insertionIndex, 0, insertionValue)
       return this.pointFactoryMethod(x)
    }
 
-   fillPolygon(): AVLPolygon3D<E> {
-      let rangeCoordinates: [Map<number, Point2D[]>, number[]] = AVLObject.getSortedRange(this.internalStorage);
+   fillPolygon(): AVLPolygon<E, K> {
+      let rangeCoordinates: [Map<number, K[]>, number[]] = this.getSortedRange(0);
       let TS_REF = this;
       // Just for laughs, here is the entire 3D polygon rasterization interface in one line 
-      return rangeCoordinates[0].forEach(function (value, key) { value.length >= 2 ? TS_REF.addCoordinates((Utilities.brensenham(value[0], value[value.length-1], 0) as Point2D[]).reduce<E[]>(function (accumulator: E[], currentValue: Point2D): E[] { return accumulator.push(TS_REF.convert2Dto3D(currentValue, rangeCoordinates[1][0], key)), accumulator; }, []), false) : value.length === 1 ? TS_REF.internalStorage.addCoordinate(TS_REF.convert2Dto3D(value[0], rangeCoordinates[1][0], key), false) : null; }), this;
+      return rangeCoordinates[0].forEach(
+         function (value, key) { 
+            value.length >= 2 ? TS_REF.addCoordinates((Utilities.brensenham(value[0], value[value.length-1], 0) as K[]).reduce<E[]>(
+               function (accumulator: E[], currentValue: Point2D): E[] { 
+                  return accumulator.push(TS_REF.convertDimensionHigher(currentValue as K, rangeCoordinates[1][0], key) as E), accumulator; 
+               }, []), false) : value.length === 1 ? TS_REF.internalStorage.addCoordinate(TS_REF.convertDimensionHigher(value[0], rangeCoordinates[1][0], key) as E, false) : null; 
+            }
+         ), this;
    }
 }
