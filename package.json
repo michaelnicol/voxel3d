@@ -1,9 +1,8 @@
 {
+  "name": "voxel3d",
   "type": "module",
-  "scripts": {
-    "server": "nodemon server.js"
-  },
   "dependencies": {
     "typescript": "^5.0.4"
-  }
+  },
+  "version": "0.0.1"
 }

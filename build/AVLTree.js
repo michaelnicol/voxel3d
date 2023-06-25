@@ -28,7 +28,7 @@ export class AVLTree {
     /**
      * Time complexity:  O(Log2(n)) where n is the number of nodes.
      *
-     * @returns Node containg the lowest value in the tree.
+     * @returns Node that contains the lowest value in the tree.
      */
     getLowestValue() {
         if (this.root === undefined) {

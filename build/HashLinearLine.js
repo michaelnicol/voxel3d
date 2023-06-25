@@ -12,7 +12,7 @@ export class HashLinearLine extends HashObject {
         this.internalStorage.addCoordinate(endPoint, false);
     }
     generateLine() {
-        this.setStorage(Utilities.brensenham(this.startPoint, this.endPoint, 2));
+        this.setStorage(Utilities.bresenham(this.startPoint, this.endPoint, 2));
         return this;
     }
     changeEndPoints(startPoint, endPoint) {

@@ -13,7 +13,7 @@ export class BasicSetOperations {
                 smallestObjectIndex = i;
             }
         }
-        let coordinates = smallestObject.getCoordinateList(false);
+        let coordinates = smallestObject.getCoordinateList(false, false);
         coordinateLoop: for (let coord of coordinates) {
             for (let i = 0; i < objs.length; i++) {
                 if (i != smallestObjectIndex && !objs[i].hasCoordinate(coord)) {
@@ -45,12 +45,12 @@ export class BasicSetOperations {
             }
         }
         for (let o of objs) {
-            let coordinates = o.getCoordinateList(false);
+            let coordinates = o.getCoordinateList(false, false);
             for (let coord of coordinates) {
                 voxelStorage.addCoordinate(coord, false);
             }
         }
-        return returnList ? voxelStorage.getCoordinateList(false) : voxelStorage;
+        return returnList ? voxelStorage.getCoordinateList(false, false) : voxelStorage;
     }
     /**
      * Computes A - B
@@ -66,7 +66,7 @@ export class BasicSetOperations {
         }
         const points = [];
         const voxelStorage = new VoxelStorage(a.getMaxDimensions(), a.getFactoryMethod());
-        const coordinates = b.getCoordinateList(false);
+        const coordinates = b.getCoordinateList(false, false);
         for (let coord of coordinates) {
             if (!a.hasCoordinate(coord)) {
                 if (returnList) {
@@ -89,7 +89,7 @@ export class BasicSetOperations {
         const voxelStorage = new VoxelStorage(a.getMaxDimensions(), a.getFactoryMethod());
         for (let o of universalSet) {
             if (o != a) {
-                let currentCoordinates = o.getCoordinateList(false);
+                let currentCoordinates = o.getCoordinateList(false, false);
                 for (let coord of currentCoordinates) {
                     if (!a.hasCoordinate(coord)) {
                         if (returnList) {

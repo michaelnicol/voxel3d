@@ -31,7 +31,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
   /**
    * Time complexity:  O(Log2(n)) where n is the number of nodes.
    * 
-   * @returns Node containg the lowest value in the tree.
+   * @returns Node that contains the lowest value in the tree.
    */
   public getLowestValue(): AVLTreeNode<E> | undefined {
     if (this.root === undefined) {
@@ -170,7 +170,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
         this.rebalance(nodeToRemove.getParent() as AVLTreeNode<E>)
       }
       this.hashMap.delete(value.preHash());
-      // console.log("Node After Rebalance")
+      // console.log("Node After rebalance")
       // console.log(this.toPrint())
       return nodeToRemove;
     }
@@ -299,12 +299,12 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
    * 
    * Time complexity: O(Log2(n)) where n is the number of nodes.
    * 
-   * Rebalances a node accounting for double and single rotations.
+   * rebalances a node accounting for double and single rotations.
    * 
    * @param currentNode Node to be rebalanced.
    */
   private rebalance(pivotNode: AVLTreeNode<E>) {
-    // console.log("Rebalance at: " + pivotNode.toPrint())
+    // console.log("rebalance at: " + pivotNode.toPrint())
     if (pivotNode.getBalance() === 2) {
       if (pivotNode.getRight()?.getBalance() === -1) {
         pivotNode.getRight()?.setBalance(0)

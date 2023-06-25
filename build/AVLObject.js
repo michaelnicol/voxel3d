@@ -26,8 +26,8 @@ export class AVLObject {
     getCoordinateCount() {
         return this.internalStorage.getCoordinateCount();
     }
-    getCoordinateList(duplicates) {
-        return this.internalStorage.getCoordinateList(duplicates);
+    getCoordinateList(duplicates, instances) {
+        return this.internalStorage.getCoordinateList(duplicates, instances);
     }
     addCoordinates(coordinatesToAdd, allowDuplicates) {
         for (let c of coordinatesToAdd) {
@@ -40,12 +40,12 @@ export class AVLObject {
         for (let c of coordinatesToRemove) {
             removeRanges.push(...this.internalStorage.removeCoordinate(c, false));
         }
-        this.internalStorage.findRangeInclusive(removeRanges, this.internalStorage.dimensionRange);
+        this.internalStorage.findRangeInclusive(removeRanges);
         return this;
     }
     getSortedRange(targetDimension) {
         let rangeCoordinates = new Map();
-        let points = this.internalStorage.getCoordinateList(false);
+        let points = this.internalStorage.getCoordinateList(false, false);
         let storageRange = this.internalStorage.dimensionRange;
         let longestRangeKeys = this.internalStorage.getSortedRangeIndices();
         let longestRangeKey = longestRangeKeys[targetDimension];
@@ -73,7 +73,7 @@ export class AVLObject {
         return this;
     }
     toPrint() {
-        let list = this.internalStorage.getCoordinateList(true);
+        let list = this.internalStorage.getCoordinateList(true, false);
         let str = "[";
         for (let i = 0; i < list.length; i++) {
             str += list[i].toPrint();

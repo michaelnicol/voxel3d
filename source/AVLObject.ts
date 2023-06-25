@@ -37,8 +37,8 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
       return this.internalStorage.getCoordinateCount();
    }
 
-   getCoordinateList(duplicates: boolean): E[] {
-      return this.internalStorage.getCoordinateList(duplicates);
+   getCoordinateList(duplicates: boolean, instances: boolean): E[] | number[][] {
+      return this.internalStorage.getCoordinateList(duplicates, instances);
    }
 
    addCoordinates(coordinatesToAdd: E[], allowDuplicates: boolean): AVLObject<E, K> {
@@ -53,13 +53,13 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
       for (let c of coordinatesToRemove) {
          removeRanges.push(...this.internalStorage.removeCoordinate(c, false));
       }
-      this.internalStorage.findRangeInclusive(removeRanges, this.internalStorage.dimensionRange);
+      this.internalStorage.findRangeInclusive(removeRanges);
       return this;
    }
 
    getSortedRange(targetDimension: number): [Map<number, K[]>, number[]] {
       let rangeCoordinates = new Map<number, K[]>();
-      let points: E[] = this.internalStorage.getCoordinateList(false);
+      let points: E[] = this.internalStorage.getCoordinateList(false, false) as E[];
       let storageRange: Map<number, number[]> = this.internalStorage.dimensionRange;
       let longestRangeKeys = this.internalStorage.getSortedRangeIndices()
       let longestRangeKey = longestRangeKeys[targetDimension]
@@ -90,7 +90,7 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
    }
 
    toPrint(): string {
-      let list: E[] = this.internalStorage.getCoordinateList(true);
+      let list: E[] = this.internalStorage.getCoordinateList(true, false) as E[];
       let str = "[";
       for (let i = 0; i < list.length; i++) {
          str += list[i].toPrint()

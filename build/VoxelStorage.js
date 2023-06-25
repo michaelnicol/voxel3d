@@ -3,49 +3,79 @@ import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 import { Point3D } from "./Point3D.js";
 export class VoxelStorage {
+    /**
+     * This object holds a hashmap of the dimension as the key, and the value is the extremes for that dimension. Dimensions start at zero for x.
+     *
+     * dimensionNumber: [minValue, minAmount, maxValue, maxAmount]
+     *
+     * The amount of numbers in the data set that are the min and max are also stored. This prevents re-calculation of the range for a dimension if a,
+     * number is removed from the dataset that is not an extreme or it is not the only instance.
+     *
+     * If no coordinates are in the tree and findRange is called, the min and max of each dimension will become the min and max integer limits. This is because all future coordinates could exist in that range.
+     * This is why the minAmount and maxAmount should be checked.
+     *
+     */
     dimensionRange = new Map();
+    /**
+     * The root is the AVL tree that contains all of the x values. Each node contains the x-value, and a binary tree containing all of the y-values that have followed that x-value.
+     * This processes repeats recursively for all dimensions.
+     */
     root = new AVLTree(undefined, new VoxelStorageComparator());
-    maxDimensions = -1;
-    coordinateCount = 0;
+    #maxDimensions = -1;
+    /**
+     * Amount of coordinates, including duplicates, that are stored in this tree.
+     */
+    #coordinateCount = 0;
     pointFactoryMethod;
+    /**
+     * @param maxDimensions The amount of dimensions that this tree will have. For XYZ, this will be 3.
+     * @param pointFactoryMethod The factory method create a new instance of that dimension point. For a dimension of 3, pass in: new Point3D().factoryMethod.
+     *
+     * A factory method is needed because TypeScript can not create instances of generics at run time. Since coordinates are not stored as points internally (but rather nodes on a tree),
+     * a factor method must be used to convert collections of tree nodes back into point instances.
+     */
     constructor(maxDimensions, pointFactoryMethod) {
         if (maxDimensions < 1) {
             throw new Error("Invalid Depth: Can not be less than 1");
         }
-        this.maxDimensions = maxDimensions;
-        for (let i = 0; i < this.maxDimensions; i++) {
+        this.#maxDimensions = maxDimensions;
+        for (let i = 0; i < this.#maxDimensions; i++) {
             this.dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
         }
         this.pointFactoryMethod = pointFactoryMethod;
     }
+    /**
+     * @returns Amount of dimensions this tree contains
+     */
     getMaxDimensions() {
-        return this.maxDimensions;
+        return this.#maxDimensions;
     }
+    /**
+     * @returns Amount of coordinates, including duplicates, that are stored in this tree.
+     */
     getCoordinateCount() {
-        return this.coordinateCount;
+        return this.#coordinateCount;
     }
-    getDepth() {
-        let depth = 0;
-        let current = this.root.getRoot();
-        while (current != undefined) {
-            depth++;
-            if (current.getValue() === undefined) {
-                return depth;
-            }
-            current = current.getValue().getBinarySubTreeRoot();
-        }
-        return depth;
-    }
-    findRangeRecursiveCall(currentNode, range, depth, limitingDepth, useInclusiveRanges, inclusiveRanges) {
+    /**
+     * Private recursive method for calculating the range of dimensions within the tree.
+     *
+     * @param currentNode The current Node the call stack is checking
+     * @param depth The current depth of the tree. Zero is for the x (or first) dimension.
+     * @param limitingDepth If the parameter specifies useInclusiveRanges, then stop after this depth
+     * @param useInclusiveRanges  If the program should use a list of target dimensions to calculate the range for verse calculating ranges up to a depth
+     * @param inclusiveRanges Otherwise, without a limiting depth, only re-calculate ranges for this depth.
+     */
+    #findRangeRecursiveCall(currentNode, depth, limitingDepth, useInclusiveRanges, inclusiveRanges) {
         if (!useInclusiveRanges || depth === inclusiveRanges[inclusiveRanges.length - 1]) {
             if (useInclusiveRanges) {
-                // n is the length of the initial inclusiveRanges aray
+                // n is the length of the initial inclusiveRanges array
                 // Removing from end of array is o(1), so o(n) for all range values;
                 // Instead of shift that will be o(n^2).
                 inclusiveRanges?.pop();
             }
             const amount = currentNode.getAmount();
-            const currentValue = range.get(depth);
+            const currentValue = this.dimensionRange.get(depth);
+            // [minValue, minAmount, maxValue, maxAmount]
             if (amount < currentValue[0]) {
                 currentValue[0] = amount;
                 currentValue[1] = 1;
@@ -63,23 +93,35 @@ export class VoxelStorage {
         }
         if (currentNode.hasRight()) {
             let rightSubTree = currentNode.getRight();
-            this.findRangeRecursiveCall(rightSubTree, range, depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
+            this.#findRangeRecursiveCall(rightSubTree, depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
         }
         if (currentNode.hasLeft()) {
             let leftSubTree = currentNode.getLeft();
-            this.findRangeRecursiveCall(leftSubTree, range, depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
+            this.#findRangeRecursiveCall(leftSubTree, depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
         }
-        if (depth < (!useInclusiveRanges ? limitingDepth : this.maxDimensions - 1)) {
+        if (depth < (!useInclusiveRanges ? limitingDepth : this.#maxDimensions - 1)) {
             let downwardSubTree = currentNode.getValue().getBinarySubTreeRoot();
-            this.findRangeRecursiveCall(downwardSubTree, range, ++depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
+            this.#findRangeRecursiveCall(downwardSubTree, ++depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
         }
     }
-    findRangeInclusive(inclusiveRange, range) {
-        return this.#findRange(true, inclusiveRange, -1, range);
+    /**
+     * @param inclusiveRange Re-calculate the range at only these dimensions
+     * @returns The current dimension range hashmap
+     */
+    findRangeInclusive(inclusiveRange) {
+        return this.#findRange(true, inclusiveRange, -1);
     }
-    findRangeExclusive(maxDimensions, range) {
-        return this.#findRange(true, [], maxDimensions, range);
+    /**
+     * @param maxDimensions  Re-calculate the range up to these dimensions
+     * @returns
+     */
+    findRangeExclusive(maxDimensions) {
+        return this.#findRange(true, [], maxDimensions);
     }
+    /**
+     * Only God knows what this does
+     * @returns
+     */
     getSortedRangeIndices() {
         let list = [];
         for (let [key, value] of this.dimensionRange) {
@@ -93,11 +135,19 @@ export class VoxelStorage {
         }
         return returnList;
     }
-    #findRange(useInclusive, inclusiveRange, exclusiveDepth, range) {
-        if (exclusiveDepth > this.maxDimensions) {
-            throw new Error(`Invalid tree height for range call: ${exclusiveDepth} greater than this.maxDimensions ${this.maxDimensions}`);
+    /**
+     * Re-calculates the internal range hash map.
+     *
+     * @param useInclusive If the program should use a list of target dimensions to calculate the range for verse calculating ranges up to a depth
+     * @param inclusiveRange Only calculate the ranges for these dimensions
+     * @param exclusiveDepth Otherwise, only calculate up to this depth
+     * @returns The dimension range object
+     */
+    #findRange(useInclusive, inclusiveRange, exclusiveDepth) {
+        if (exclusiveDepth > this.#maxDimensions) {
+            throw new Error(`Invalid tree height for range call: ${exclusiveDepth} greater than this.#maxDimensions ${this.#maxDimensions}`);
         }
-        range = range === undefined ? new Map() : range;
+        const range = this.dimensionRange === undefined ? new Map() : this.dimensionRange;
         if (!useInclusive) {
             for (let i = 0; i < exclusiveDepth; i++) {
                 range.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
@@ -105,7 +155,7 @@ export class VoxelStorage {
         }
         else {
             inclusiveRange = inclusiveRange?.sort((a, b) => b - a);
-            if (inclusiveRange[0] > this.maxDimensions) {
+            if (inclusiveRange[0] > this.#maxDimensions) {
                 throw new Error(`Inclusive Ranges depth too large: ${JSON.stringify(range)}`);
             }
             for (let i = 0; i < inclusiveRange.length; i++) {
@@ -113,15 +163,18 @@ export class VoxelStorage {
                 range.set(rangeNumber, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
             }
         }
-        if (this.coordinateCount === 0) {
+        if (this.#coordinateCount === 0) {
             return range;
         }
-        this.findRangeRecursiveCall(this.root.getRoot(), range, 0, exclusiveDepth, useInclusive, inclusiveRange);
+        this.#findRangeRecursiveCall(this.root.getRoot(), 0, exclusiveDepth, useInclusive, inclusiveRange);
         return range;
     }
-    getmaxDimensions() {
-        return this.maxDimensions;
-    }
+    /**
+     * Checks if the AVL tree contains this coordinate.
+     *
+     * @param coordinate
+     * @returns
+     */
     hasCoordinate(coordinate) {
         const { arr } = coordinate;
         let nodeToFind = new VoxelStorageNode(arr[0]);
@@ -139,15 +192,23 @@ export class VoxelStorage {
         }
         return true;
     }
+    /**
+     * Adds a coordinate to the tree.
+     *
+     * @param coordinate The coordinate instance to add.
+     * @param allowDuplicates If this coordinate already exists in this tree, specify true to ignore it or false to increase the amount of that coordinate.
+     * @returns
+     */
     addCoordinate(coordinate, allowDuplicates) {
         if (!allowDuplicates && this.hasCoordinate(coordinate)) {
             return;
         }
-        this.coordinateCount += 1;
+        this.#coordinateCount += 1;
         const { arr } = coordinate;
         var currentNode;
         for (let i = 0; i < arr.length; i++) {
             const range = this.dimensionRange.get(i);
+            // Calculates the range as each dimension is traversed to prevent needing to call findRange
             if (arr[i] < range[0]) {
                 range[0] = arr[i];
                 range[1] = 1;
@@ -176,76 +237,184 @@ export class VoxelStorage {
             throw new Error("Internal Error");
         }
     }
-    removeCoordinate(coordinate, calculauteRange = true) {
-        this.coordinateCount -= 1;
-        if (!this.hasCoordinate(coordinate)) {
-            throw new Error("Coordinate does not exist");
-        }
-        const { arr } = coordinate;
-        const rangeList = [];
-        let nodeToFind = new VoxelStorageNode(arr[0]);
-        let nodeToReduce = this.root.getItem(nodeToFind);
-        if (nodeToReduce.getAmount() === 1) {
-            rangeList.push(0);
-        }
-        let currentTree = this.root.removeItem(nodeToFind).getValue();
-        for (let i = 1; i < arr.length; i++) {
-            nodeToReduce = currentTree.getItem(arr[i]);
-            if (nodeToReduce.getAmount() === 1) {
-                rangeList.push(i);
+    /**
+     * Removes a list of coordiantes. calculateRange will batch range calculations to the end of all coordinate removals.
+     *
+     * @param coordinates List of coordinate instances to remove.
+     * @param calculateRange If the dimension ranges should be re-calculated
+     * @returns
+     */
+    removeCoordinateList(coordinates, calculateRange) {
+        let rangeList = [];
+        for (let coord of coordinates) {
+            let ranges = this.removeCoordinate(coord, false);
+            for (let v of ranges) {
+                if (rangeList.indexOf(v) === -1) {
+                    rangeList.push(v);
+                }
             }
-            currentTree = currentTree.removeItem(arr[i]).getValue();
         }
-        if (calculauteRange && rangeList.length > 0) {
-            this.findRangeInclusive(rangeList, this.dimensionRange);
+        if (calculateRange && rangeList.length > 0) {
+            this.findRangeInclusive(rangeList);
         }
         return rangeList;
     }
     /**
+     * Removes a coordinate of type E from the tree.
+     *
+     * @param coordinate Coordinate instance to remove
+     * @param calculateRange If the dimension ranges should be re-calculated.
+     * @returns
+     */
+    removeCoordinate(coordinate, calculateRange) {
+        this.#coordinateCount -= 1;
+        if (!this.hasCoordinate(coordinate)) {
+            return [];
+        }
+        // Grab the list of dimension values from the coordinate
+        const { arr } = coordinate;
+        /**
+        * The range list contains the dimension numbers that ranges needs to be re-calculated. This is because, if a y coordinate is removed
+        * and it was the min or the max of that y-coordinate range, then a new one must be found.
+        */
+        const rangeList = [];
+        let nodeToFind = new VoxelStorageNode(arr[0]);
+        // Find the node that needs to be reduced
+        let nodeToReduce = this.root.getItem(nodeToFind);
+        let nodeToReduceValue = nodeToReduce.getValue().getData();
+        let dimensionEntry = this.dimensionRange.get(0);
+        // If the node to reduce amount is equal to one, this node and its sub-branch is removed from the tree.
+        if (nodeToReduce.getAmount() === 1) {
+            // If the reduced value is the min of the entire range for that dimension
+            if (nodeToReduceValue === dimensionEntry[0]) {
+                // And it is the only number that is that min
+                if (dimensionEntry[1] === 1) {
+                    // That range needs to be re-calculated.
+                    rangeList.push(0);
+                }
+                else {
+                    // Otherwise, just reduce the amount of numbers that are the min of that dimension
+                    dimensionEntry[1] -= 1;
+                }
+                // Same applies with the max
+            }
+            else if (nodeToReduceValue === dimensionEntry[1]) {
+                if (dimensionEntry[3] === 1) {
+                    rangeList.push(0);
+                }
+                else {
+                    dimensionEntry[3] -= 1;
+                }
+            }
+            // Otherwise, this number is inbetween the min and the max, and the range does not need to be recalculated.
+        }
+        // The value of each VoxelStorageNode is another tree, and grab that tree.
+        let currentTree = this.root.removeItem(nodeToFind).getValue();
+        // Start at the second dimension, work your way into all subsequente dimensions.
+        for (let i = 1; i < arr.length; i++) {
+            nodeToReduce = currentTree.getItem(arr[i]);
+            nodeToReduceValue = nodeToReduce.getValue().getData();
+            dimensionEntry = this.dimensionRange.get(i);
+            // If the node to reduce amount is equal to one, this node and its sub-branch is removed from the tree.
+            if (nodeToReduce.getAmount() === 1) {
+                // If the reduced value is the min of the entire range for that dimension
+                if (nodeToReduceValue === dimensionEntry[0]) {
+                    // And it is the only number that is that min
+                    if (dimensionEntry[1] === 1) {
+                        // That range needs to be re-calculated.
+                        rangeList.push(i);
+                    }
+                    else {
+                        // Otherwise, just reduce the amount of numbers that are the min of that dimension
+                        dimensionEntry[1] -= 1;
+                    }
+                    // Same applies with the max
+                }
+                else if (nodeToReduceValue === dimensionEntry[1]) {
+                    if (dimensionEntry[3] === 1) {
+                        rangeList.push(i);
+                    }
+                    else {
+                        dimensionEntry[3] -= 1;
+                    }
+                }
+                // Otherwise, this number is inbetween the min and the max, and the range does not need to be recalculated.
+            }
+            currentTree = currentTree.removeItem(arr[i]).getValue();
+        }
+        if (calculateRange && rangeList.length > 0) {
+            this.findRangeInclusive(rangeList);
+        }
+        return rangeList;
+    }
+    /**
+     * Private recursive call for collecting the coordinates in the tree.
+     *
      * @param currentNode
      * @param currentCoordinate
-     * @param allCoordinates
+     * @param allCoordinates Uses a reference to an external list rather than returning that list
      * @param depth
      * @returns
      */
-    #getCoordinatesRecursiveCall(currentNode, currentCoordinate, allCoordinates, depth, duplicates) {
+    #getCoordinatesRecursiveCall(currentNode, currentCoordinate, allCoordinates, depth, duplicates, instances) {
         if (currentNode.hasRight()) {
             let rightSubTree = currentNode.getRight();
-            this.#getCoordinatesRecursiveCall(rightSubTree, [...currentCoordinate], allCoordinates, depth, duplicates);
+            this.#getCoordinatesRecursiveCall(rightSubTree, [...currentCoordinate], allCoordinates, depth, duplicates, instances);
         }
         if (currentNode.hasLeft()) {
             let leftSubTree = currentNode.getLeft();
-            this.#getCoordinatesRecursiveCall(leftSubTree, [...currentCoordinate], allCoordinates, depth, duplicates);
+            this.#getCoordinatesRecursiveCall(leftSubTree, [...currentCoordinate], allCoordinates, depth, duplicates, instances);
         }
-        if (depth >= this.maxDimensions) {
+        if (depth >= this.#maxDimensions) {
             currentCoordinate.push(currentNode.getValue().getData());
             if (duplicates) {
                 for (let i = currentNode.getAmount(); i > 0; i--) {
-                    allCoordinates.push(this.pointFactoryMethod(currentCoordinate));
+                    if (instances) {
+                        allCoordinates.push(this.pointFactoryMethod(currentCoordinate));
+                    }
+                    else {
+                        allCoordinates.push([...currentCoordinate]);
+                    }
                 }
             }
             else {
-                allCoordinates.push(this.pointFactoryMethod(currentCoordinate));
+                if (instances) {
+                    allCoordinates.push(this.pointFactoryMethod(currentCoordinate));
+                }
+                else {
+                    allCoordinates.push([...currentCoordinate]);
+                }
             }
             return;
         }
         else {
             currentCoordinate.push(currentNode.getValue().getData());
             let downwardSubTree = currentNode.getValue().getBinarySubTreeRoot();
-            this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, ++depth, duplicates);
+            this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, ++depth, duplicates, instances);
         }
     }
-    getCoordinateList(duplicates) {
+    /**
+     *
+     * @param duplicates If duplicate coordinates should be returned in the list
+     * @returns A list of all of the tree's coordinates, where each coordinate is a instance of the pointFactoryMethod.
+     */
+    getCoordinateList(duplicates, instances) {
         if (this.root.getRoot() === undefined) {
             return [];
         }
         let allCoordinates = [];
-        this.#getCoordinatesRecursiveCall(this.root.getRoot(), [], allCoordinates, 1, duplicates);
+        this.#getCoordinatesRecursiveCall(this.root.getRoot(), [], allCoordinates, 1, duplicates, instances);
         return allCoordinates;
     }
+    /**
+     *
+     * @returns An instance of Corners3D which is the coordinates of a 3D rectangle encompassing the coordinates stored in the tree. This can still be calculated if the dimensions are greater than 3. For a 4D tree, this is the volume of space this object exists in across all points in time.
+     *
+     * @throws Error if the maxDimensions is less than 3.
+     */
     getBoundingBox3D() {
-        if (this.maxDimensions < 3) {
-            throw new Error("Storage tree depth is less than 3: " + this.maxDimensions);
+        if (this.#maxDimensions < 3) {
+            throw new Error("Storage tree depth is less than 3: " + this.#maxDimensions);
         }
         let xRange = this.dimensionRange.get(0);
         let yRange = this.dimensionRange.get(1);

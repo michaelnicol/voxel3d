@@ -14,7 +14,7 @@ export class HashLinearLine<E extends Point> extends HashObject<E> {
       this.internalStorage.addCoordinate(endPoint, false);
    }
    generateLine(): HashLinearLine<E> {
-      this.setStorage(Utilities.brensenham(this.startPoint, this.endPoint, 2) as HashStorage<E>);
+      this.setStorage(Utilities.bresenham(this.startPoint, this.endPoint, 2) as HashStorage<E>);
       return this;
    }
    changeEndPoints(startPoint: E, endPoint: E): HashLinearLine<E> {

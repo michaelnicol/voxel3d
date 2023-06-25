@@ -8,11 +8,11 @@ import { Utilities } from "./Utilities.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 
 export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E, K> {
-   vertices: Point3D[] = []
-   constructor(pointFactoryMethod: Function, dimensionLowerFactoryMethod: Function, v: E[]) {
-      super(3, pointFactoryMethod, dimensionLowerFactoryMethod)
+   vertices: E[] = []
+   constructor(maxDimensions: number, pointFactoryMethod: Function, dimensionLowerFactoryMethod: Function, v: E[]) {
+      super(maxDimensions, pointFactoryMethod, dimensionLowerFactoryMethod)
       for (let coord of v) {
-         this.vertices.push(coord.clone())
+         this.vertices.push(coord.clone() as E)
          this.internalStorage.addCoordinate(coord, false)
       }
    }
@@ -20,9 +20,9 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E, K
       this.internalStorage = new VoxelStorage<E>(3, this.pointFactoryMethod)
       for (let i = 0; i < this.vertices.length; i++) {
          if (i + 1 === this.vertices.length) {
-            this.internalStorage, this.addCoordinates(Utilities.brensenham(this.vertices[i], this.vertices[0], 0) as E[], false)
+            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0) as E[], false)
          } else {
-            this.internalStorage, this.addCoordinates(Utilities.brensenham(this.vertices[i], this.vertices[i + 1], 0) as E[], false)
+            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0) as E[], false)
          }
       }
       return this;
@@ -35,12 +35,12 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E, K
    }
 
    fillPolygon(): AVLPolygon<E, K> {
-      let rangeCoordinates: [Map<number, K[]>, number[]] = this.getSortedRange(0);
+      let rangeCoordinates: [Map<number, K[]>, number[]] = this.internalStorage.getSortedRange(0);
       let TS_REF = this;
       // Just for laughs, here is the entire 3D polygon rasterization interface in one line 
       return rangeCoordinates[0].forEach(
          function (value, key) { 
-            value.length >= 2 ? TS_REF.addCoordinates((Utilities.brensenham(value[0], value[value.length-1], 0) as K[]).reduce<E[]>(
+            value.length >= 2 ? TS_REF.addCoordinates((Utilities.bresenham(value[0], value[value.length-1], 0) as K[]).reduce<E[]>(
                function (accumulator: E[], currentValue: Point2D): E[] { 
                   return accumulator.push(TS_REF.convertDimensionHigher(currentValue as K, rangeCoordinates[1][0], key) as E), accumulator; 
                }, []), false) : value.length === 1 ? TS_REF.internalStorage.addCoordinate(TS_REF.convertDimensionHigher(value[0], rangeCoordinates[1][0], key) as E, false) : null; 
