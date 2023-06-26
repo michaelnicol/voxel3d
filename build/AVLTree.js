@@ -178,7 +178,7 @@ export class AVLTree {
                 this.rebalance(nodeToRemove.getParent());
             }
             this.hashMap.delete(value.preHash());
-            // console.log("Node After Rebalance")
+            // console.log("Node After rebalance")
             // console.log(this.toPrint())
             return nodeToRemove;
         }
@@ -308,12 +308,12 @@ export class AVLTree {
      *
      * Time complexity: O(Log2(n)) where n is the number of nodes.
      *
-     * Rebalances a node accounting for double and single rotations.
+     * rebalances a node accounting for double and single rotations.
      *
      * @param currentNode Node to be rebalanced.
      */
     rebalance(pivotNode) {
-        // console.log("Rebalance at: " + pivotNode.toPrint())
+        // console.log("rebalance at: " + pivotNode.toPrint())
         if (pivotNode.getBalance() === 2) {
             if (pivotNode.getRight()?.getBalance() === -1) {
                 pivotNode.getRight()?.setBalance(0);

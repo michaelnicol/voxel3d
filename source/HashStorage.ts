@@ -15,6 +15,11 @@ export class HashStorage<E extends Point> implements ValidObject {
       this.pointFactoryMethod = pointFactoryMethod;
    }
 
+   reset() {
+      this.hashMap = new Map<number, HashStorageNode<E>>;
+      this.coordinateCount = 0
+   }
+
    removeCoordinate(p: E): void {
       if (!this.hasCoordinate(p)) {
          return;

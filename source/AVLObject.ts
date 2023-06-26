@@ -48,41 +48,13 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
       return this;
    }
 
-   removeVoxels(coordinatesToRemove: E[]): AVLObject<E,K> {
+   removeCoordinates(coordinatesToRemove: E[]): AVLObject<E,K> {
       let removeRanges: number[] = [];
       for (let c of coordinatesToRemove) {
          removeRanges.push(...this.internalStorage.removeCoordinate(c, false));
       }
       this.internalStorage.findRangeInclusive(removeRanges);
       return this;
-   }
-
-   getSortedRange(targetDimension: number): [Map<number, K[]>, number[]] {
-      let rangeCoordinates = new Map<number, K[]>();
-      let points: E[] = this.internalStorage.getCoordinateList(false, false) as E[];
-      let storageRange: Map<number, number[]> = this.internalStorage.dimensionRange;
-      let longestRangeKeys = this.internalStorage.getSortedRangeIndices()
-      let longestRangeKey = longestRangeKeys[targetDimension]
-      // needs to be a sorted list. Maybe range should produce it.
-      for (let i = (storageRange.get(longestRangeKey) as number[])[0]; i <= (storageRange.get(longestRangeKey) as number[])[2]; i++) {
-         rangeCoordinates.set(i, [])
-      }
-      // Storage best case is O(0.5N) = O(N), worst case is still O(N)
-      for (let coord of points) {
-         (rangeCoordinates.get(coord.arr[longestRangeKey]) as K[]).push(this.dimensionLowerFactoryMethod([...coord.arr].filter((v, i) => i != longestRangeKey)))
-      }
-      for (let [key, value] of rangeCoordinates) {
-         value.sort((a, b) => Utilities.pythagorean(a, b))
-      }
-      return [rangeCoordinates, longestRangeKeys]
-   }
-
-   getRanges(): Map<number, number[]> {
-      let mapToReturn: Map<number, number[]> = new Map<number, number[]>();
-      for (let [key, value] of this.internalStorage.dimensionRange) {
-         mapToReturn.set(key, [...value])
-      }
-      return mapToReturn;
    }
 
    preHash(): AVLObject<E, K> {

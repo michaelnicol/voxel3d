@@ -11,6 +11,10 @@ export class HashStorage {
         this.maxDimensions = maxDimensions;
         this.pointFactoryMethod = pointFactoryMethod;
     }
+    reset() {
+        this.hashMap = new Map;
+        this.coordinateCount = 0;
+    }
     removeCoordinate(p) {
         if (!this.hasCoordinate(p)) {
             return;

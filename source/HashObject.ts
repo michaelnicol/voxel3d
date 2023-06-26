@@ -43,7 +43,7 @@ export class HashObject<E extends Point> implements ValidObject {
       return this;
    }
 
-   removeVoxels(coordinatesToRemove: E[]): HashObject<E> {
+   removeCoordinates(coordinatesToRemove: E[]): HashObject<E> {
       for (let c of coordinatesToRemove) {
          this.internalStorage.removeCoordinate(c);
       }

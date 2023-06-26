@@ -21,7 +21,8 @@ export class VoxelStorage<E extends Point> implements ValidObject {
     * This is why the minAmount and maxAmount should be checked.
     * 
     */
-   #dimensionRange: Map<number, number[]> = new Map();
+   #dimensionRange: Map<number, number[]> = new Map<number, number[]>();
+   outdatedDimensionRanges: Map<number, boolean> = new Map<number, boolean>();
    /**
     * The root is the AVL tree that contains all of the x values. Each node contains the x-value, and a binary tree containing all of the y-values that have followed that x-value.
     * This processes repeats recursively for all dimensions.
@@ -47,6 +48,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       this.#maxDimensions = maxDimensions;
       for (let i = 0; i < this.#maxDimensions; i++) {
          this.#dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
+         this.outdatedDimensionRanges.set(i, false)
       }
       this.pointFactoryMethod = pointFactoryMethod;
    }
@@ -61,6 +63,25 @@ export class VoxelStorage<E extends Point> implements ValidObject {
     */
    getCoordinateCount(): number {
       return this.#coordinateCount;
+   }
+
+   hasOutdatedRanges(): boolean {
+      for (let [key, value] of this.outdatedDimensionRanges) {
+         if (value) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   reset(): VoxelStorage<E> {
+      this.root = new AVLTree<VoxelStorageNode>(undefined, new VoxelStorageComparator());
+      for (let i = 0; i < this.#maxDimensions; i++) {
+         this.#dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
+         this.outdatedDimensionRanges.set(i, false)
+      }
+      this.#coordinateCount = 0;
+      return this;
    }
 
    /**
@@ -112,6 +133,17 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       }
    }
 
+
+   findRangeOutdatedRanges(): Map<number, number[]> {
+      let ranges: number[] = []
+      for (let [key, value] of this.outdatedDimensionRanges) {
+         if (value) {
+            ranges.push(key)
+         }
+      }
+      return this.findRangeInclusive(ranges)
+   }
+
    /**
     * @param inclusiveRange Re-calculate the range at only these dimensions
     * @returns The current dimension range hashmap
@@ -143,6 +175,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       const range = this.#dimensionRange === undefined ? new Map() : this.#dimensionRange;
       if (!useInclusive) {
          for (let i = 0; i < exclusiveDepth; i++) {
+            this.outdatedDimensionRanges.set(i, false)
             range.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
          }
       } else {
@@ -152,6 +185,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
          }
          for (let i = 0; i < (inclusiveRange as number[]).length; i++) {
             let rangeNumber = (inclusiveRange as number[])[i];
+            this.outdatedDimensionRanges.set(rangeNumber, false)
             range.set(rangeNumber, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
          }
       }
@@ -183,6 +217,11 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       }
       return true;
    }
+   addCoordinates(coordinates: E[], allowDuplicates: boolean): void {
+      for (let coord of coordinates) {
+         this.addCoordinate(coord, allowDuplicates)
+      }
+   }
    /**
     * Adds a coordinate to the tree.
     * 
@@ -191,12 +230,12 @@ export class VoxelStorage<E extends Point> implements ValidObject {
     * @returns 
     */
    addCoordinate(coordinate: E, allowDuplicates: boolean): void {
+      const { arr } = coordinate;
+      var currentNode: VoxelStorageNode | undefined;
       if (!allowDuplicates && this.hasCoordinate(coordinate)) {
          return;
       }
       this.#coordinateCount += 1;
-      const { arr } = coordinate;
-      var currentNode: VoxelStorageNode | undefined;
       for (let i = 0; i < arr.length; i++) {
          const range: number[] = this.#dimensionRange.get(i) as number[];
          // Calculates the range as each dimension is traversed to prevent needing to call findRange
@@ -257,10 +296,10 @@ export class VoxelStorage<E extends Point> implements ValidObject {
     * @returns 
     */
    removeCoordinate(coordinate: E, calculateRange: boolean): number[] {
-      this.#coordinateCount -= 1;
       if (!this.hasCoordinate(coordinate)) {
          return []
       }
+      this.#coordinateCount -= 1;
       // Grab the list of dimension values from the coordinate
       const { arr } = coordinate;
       /**
@@ -309,6 +348,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
                // And it is the only number that is that min
                if (dimensionEntry[1] === 1) {
                   // That range needs to be re-calculated.
+                  this.outdatedDimensionRanges.set(i, true)
                   rangeList.push(i)
                } else {
                   // Otherwise, just reduce the amount of numbers that are the min of that dimension
@@ -317,6 +357,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
                // Same applies with the max
             } else if (nodeToReduceValue === dimensionEntry[1]) {
                if (dimensionEntry[3] === 1) {
+                  this.outdatedDimensionRanges.set(i, true)
                   rangeList.push(i)
                } else {
                   dimensionEntry[3] -= 1;
@@ -328,6 +369,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       }
       if (calculateRange && rangeList.length > 0) {
          this.findRangeInclusive(rangeList);
+      } else {
       }
       return rangeList;
    }
@@ -386,34 +428,6 @@ export class VoxelStorage<E extends Point> implements ValidObject {
       this.#getCoordinatesRecursiveCall(this.root.getRoot() as AVLTreeNode<VoxelStorageNode>, [], allCoordinates, 1, duplicates, instances);
       return allCoordinates
    }
-   // /**
-   //  * Get compacted 
-   //  * 
-   //  * @param targetDimension 
-   //  * @param dimensionLowerFactoryMethod 
-   //  * @returns 
-   //  */
-   // getPythagoreanMap(targetDimension: number, dimensionLowerFactoryMethod: Function): [Map<number, E[]>, number[]] {
-   //    let rangeCoordinates = new Map<number, E[]>();
-   //    // Get a list of all coordinates
-   //    let points: E[] = this.getCoordinateList(false, false) as E[];
-   //    // Grab the dimension keys sorted by span
-   //    let longestRangeKeys = this.getSortedRangeIndices()
-   //    // The longestR
-   //    let longestRangeKey = longestRangeKeys[targetDimension]
-   //    // needs to be a sorted list. Maybe range should produce it.
-   //    for (let i = (this.#dimensionRange.get(longestRangeKey) as number[])[0]; i <= (this.#dimensionRange.get(longestRangeKey) as number[])[2]; i++) {
-   //       rangeCoordinates.set(i, [])
-   //    }
-   //    // Storage best case is O(0.5N) = O(N), worst case is still O(N)
-   //    for (let coord of points) {
-   //       (rangeCoordinates.get(coord.arr[longestRangeKey]) as E[]).push(dimensionLowerFactoryMethod([...coord.arr].filter((v, i) => i != longestRangeKey)))
-   //    }
-   //    for (let [key, value] of rangeCoordinates) {
-   //       value.sort((a, b) => Utilities.pythagorean(a, b))
-   //    }
-   //    return [rangeCoordinates, longestRangeKeys]
-   // }
    /**
     * 
     * @returns An instance of Corners3D which is the coordinates of a 3D rectangle encompassing the coordinates stored in the tree. This can still be calculated if the dimensions are greater than 3. For a 4D tree, this is the volume of space this object exists in across all points in time.

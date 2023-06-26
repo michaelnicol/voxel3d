@@ -32,7 +32,7 @@ export class HashObject {
         }
         return this;
     }
-    removeVoxels(coordinatesToRemove) {
+    removeCoordinates(coordinatesToRemove) {
         for (let c of coordinatesToRemove) {
             this.internalStorage.removeCoordinate(c);
         }

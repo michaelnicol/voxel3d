@@ -15,7 +15,8 @@ export class VoxelStorage {
      * This is why the minAmount and maxAmount should be checked.
      *
      */
-    dimensionRange = new Map();
+    #dimensionRange = new Map();
+    outdatedDimensionRanges = new Map();
     /**
      * The root is the AVL tree that contains all of the x values. Each node contains the x-value, and a binary tree containing all of the y-values that have followed that x-value.
      * This processes repeats recursively for all dimensions.
@@ -40,7 +41,8 @@ export class VoxelStorage {
         }
         this.#maxDimensions = maxDimensions;
         for (let i = 0; i < this.#maxDimensions; i++) {
-            this.dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
+            this.#dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
+            this.outdatedDimensionRanges.set(i, false);
         }
         this.pointFactoryMethod = pointFactoryMethod;
     }
@@ -55,6 +57,23 @@ export class VoxelStorage {
      */
     getCoordinateCount() {
         return this.#coordinateCount;
+    }
+    hasOutdatedRanges() {
+        for (let [key, value] of this.outdatedDimensionRanges) {
+            if (value) {
+                return true;
+            }
+        }
+        return false;
+    }
+    reset() {
+        this.root = new AVLTree(undefined, new VoxelStorageComparator());
+        for (let i = 0; i < this.#maxDimensions; i++) {
+            this.#dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
+            this.outdatedDimensionRanges.set(i, false);
+        }
+        this.#coordinateCount = 0;
+        return this;
     }
     /**
      * Private recursive method for calculating the range of dimensions within the tree.
@@ -74,7 +93,7 @@ export class VoxelStorage {
                 inclusiveRanges?.pop();
             }
             const amount = currentNode.getAmount();
-            const currentValue = this.dimensionRange.get(depth);
+            const currentValue = this.#dimensionRange.get(depth);
             // [minValue, minAmount, maxValue, maxAmount]
             if (amount < currentValue[0]) {
                 currentValue[0] = amount;
@@ -104,6 +123,15 @@ export class VoxelStorage {
             this.#findRangeRecursiveCall(downwardSubTree, ++depth, limitingDepth, useInclusiveRanges, inclusiveRanges);
         }
     }
+    findRangeOutdatedRanges() {
+        let ranges = [];
+        for (let [key, value] of this.outdatedDimensionRanges) {
+            if (value) {
+                ranges.push(key);
+            }
+        }
+        return this.findRangeInclusive(ranges);
+    }
     /**
      * @param inclusiveRange Re-calculate the range at only these dimensions
      * @returns The current dimension range hashmap
@@ -119,23 +147,6 @@ export class VoxelStorage {
         return this.#findRange(true, [], maxDimensions);
     }
     /**
-     * Only God knows what this does
-     * @returns
-     */
-    getSortedRangeIndices() {
-        let list = [];
-        for (let [key, value] of this.dimensionRange) {
-            let r = Math.abs(value[0] - value[2]);
-            list.push([key, r]);
-        }
-        list.sort((a, b) => b[1] - a[1]);
-        let returnList = [];
-        for (let x of list) {
-            returnList.push(x[0]);
-        }
-        return returnList;
-    }
-    /**
      * Re-calculates the internal range hash map.
      *
      * @param useInclusive If the program should use a list of target dimensions to calculate the range for verse calculating ranges up to a depth
@@ -147,9 +158,10 @@ export class VoxelStorage {
         if (exclusiveDepth > this.#maxDimensions) {
             throw new Error(`Invalid tree height for range call: ${exclusiveDepth} greater than this.#maxDimensions ${this.#maxDimensions}`);
         }
-        const range = this.dimensionRange === undefined ? new Map() : this.dimensionRange;
+        const range = this.#dimensionRange === undefined ? new Map() : this.#dimensionRange;
         if (!useInclusive) {
             for (let i = 0; i < exclusiveDepth; i++) {
+                this.outdatedDimensionRanges.set(i, false);
                 range.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
             }
         }
@@ -160,6 +172,7 @@ export class VoxelStorage {
             }
             for (let i = 0; i < inclusiveRange.length; i++) {
                 let rangeNumber = inclusiveRange[i];
+                this.outdatedDimensionRanges.set(rangeNumber, false);
                 range.set(rangeNumber, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
             }
         }
@@ -192,6 +205,11 @@ export class VoxelStorage {
         }
         return true;
     }
+    addCoordinates(coordinates, allowDuplicates) {
+        for (let coord of coordinates) {
+            this.addCoordinate(coord, allowDuplicates);
+        }
+    }
     /**
      * Adds a coordinate to the tree.
      *
@@ -200,14 +218,14 @@ export class VoxelStorage {
      * @returns
      */
     addCoordinate(coordinate, allowDuplicates) {
+        const { arr } = coordinate;
+        var currentNode;
         if (!allowDuplicates && this.hasCoordinate(coordinate)) {
             return;
         }
         this.#coordinateCount += 1;
-        const { arr } = coordinate;
-        var currentNode;
         for (let i = 0; i < arr.length; i++) {
-            const range = this.dimensionRange.get(i);
+            const range = this.#dimensionRange.get(i);
             // Calculates the range as each dimension is traversed to prevent needing to call findRange
             if (arr[i] < range[0]) {
                 range[0] = arr[i];
@@ -267,10 +285,10 @@ export class VoxelStorage {
      * @returns
      */
     removeCoordinate(coordinate, calculateRange) {
-        this.#coordinateCount -= 1;
         if (!this.hasCoordinate(coordinate)) {
             return [];
         }
+        this.#coordinateCount -= 1;
         // Grab the list of dimension values from the coordinate
         const { arr } = coordinate;
         /**
@@ -282,7 +300,7 @@ export class VoxelStorage {
         // Find the node that needs to be reduced
         let nodeToReduce = this.root.getItem(nodeToFind);
         let nodeToReduceValue = nodeToReduce.getValue().getData();
-        let dimensionEntry = this.dimensionRange.get(0);
+        let dimensionEntry = this.#dimensionRange.get(0);
         // If the node to reduce amount is equal to one, this node and its sub-branch is removed from the tree.
         if (nodeToReduce.getAmount() === 1) {
             // If the reduced value is the min of the entire range for that dimension
@@ -314,7 +332,7 @@ export class VoxelStorage {
         for (let i = 1; i < arr.length; i++) {
             nodeToReduce = currentTree.getItem(arr[i]);
             nodeToReduceValue = nodeToReduce.getValue().getData();
-            dimensionEntry = this.dimensionRange.get(i);
+            dimensionEntry = this.#dimensionRange.get(i);
             // If the node to reduce amount is equal to one, this node and its sub-branch is removed from the tree.
             if (nodeToReduce.getAmount() === 1) {
                 // If the reduced value is the min of the entire range for that dimension
@@ -322,6 +340,7 @@ export class VoxelStorage {
                     // And it is the only number that is that min
                     if (dimensionEntry[1] === 1) {
                         // That range needs to be re-calculated.
+                        this.outdatedDimensionRanges.set(i, true);
                         rangeList.push(i);
                     }
                     else {
@@ -332,6 +351,7 @@ export class VoxelStorage {
                 }
                 else if (nodeToReduceValue === dimensionEntry[1]) {
                     if (dimensionEntry[3] === 1) {
+                        this.outdatedDimensionRanges.set(i, true);
                         rangeList.push(i);
                     }
                     else {
@@ -344,6 +364,8 @@ export class VoxelStorage {
         }
         if (calculateRange && rangeList.length > 0) {
             this.findRangeInclusive(rangeList);
+        }
+        else {
         }
         return rangeList;
     }
@@ -416,9 +438,9 @@ export class VoxelStorage {
         if (this.#maxDimensions < 3) {
             throw new Error("Storage tree depth is less than 3: " + this.#maxDimensions);
         }
-        let xRange = this.dimensionRange.get(0);
-        let yRange = this.dimensionRange.get(1);
-        let zRange = this.dimensionRange.get(2);
+        let xRange = this.#dimensionRange.get(0);
+        let yRange = this.#dimensionRange.get(1);
+        let zRange = this.#dimensionRange.get(2);
         return {
             "0": new Point3D(xRange[0], yRange[0], zRange[0]),
             "1": new Point3D(xRange[2], yRange[0], zRange[0]),
@@ -429,6 +451,32 @@ export class VoxelStorage {
             "6": new Point3D(xRange[0], yRange[2], zRange[2]),
             "7": new Point3D(xRange[2], yRange[2], zRange[2])
         };
+    }
+    getRanges() {
+        let mapToReturn = new Map();
+        for (let [key, value] of this.#dimensionRange) {
+            mapToReturn.set(key, [...value]);
+        }
+        return mapToReturn;
+    }
+    /**
+       * @returns Within the dimensionRange, dimensions are stored zero through n (key) and the min and maxes are stored (value). The span is the difference between the min and the max of each dimension.
+       * This function will return a list of [dimensionNumber, dimensionSpan] elements sorted by span.
+    */
+    getSortedRangeIndices() {
+        // Each element is a [dimensionNumber, dimensionSpan]
+        let list = [];
+        // For each range in the hashmap
+        for (let [key, value] of this.#dimensionRange) {
+            // Calculate the span of that dimension. Difference between min and max. 
+            let r = Math.abs(value[0] - value[2]);
+            // Add the [dimensionNumber: span] to the list.
+            list.push([key, r]);
+        }
+        // Sort from highest to lowest dimension.
+        list.sort((a, b) => b[1] - a[1]);
+        // Then return that.
+        return list;
     }
     preHash() {
         return this;
