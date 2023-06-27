@@ -1,5 +1,6 @@
 import { HashStorage } from "./HashStorage.js";
 import { VoxelStorage } from "./VoxelStorage.js";
+import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
 export class Utilities {
     static pythagorean(p1, p2) {
         if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {
@@ -16,8 +17,8 @@ export class Utilities {
             throw new Error(`Dimensions are not the same or dimension count is zero: p1 ${p1.dimensionCount()} verse p2 ${p2.dimensionCount()}`);
         }
         let coordinates = [];
-        let voxelStorage = new VoxelStorage(p1.dimensionCount(), p1.factoryMethod);
-        let hashStorage = new HashStorage(p1.dimensionCount(), p1.factoryMethod);
+        let voxelStorage = new VoxelStorage(p1.dimensionCount());
+        let hashStorage = new HashStorage(p1.dimensionCount());
         let flag = true;
         for (let i = 0; i < p1.dimensionCount(); i++) {
             if (p1.arr[i] != p2.arr[i]) {
@@ -95,5 +96,28 @@ export class Utilities {
             }
             currentPoint[indexOfGreatest] += increments[indexOfGreatest];
         }
+    }
+    static pointOrientation = (p1, p2, p3) => {
+        // returns slope from p1 to p2 minus p2 to p3
+        return (p2.arr[0] - p1.arr[0]) * (p3.arr[1] - p1.arr[1]) - (p2.arr[1] - p1.arr[1]) * (p3.arr[0] - p1.arr[0]);
+    };
+    static convexHull(inputPoints) {
+        let stack = [];
+        // Sort the data set from lowest x value to highest
+        let sortedPoints = inputPoints.reduce((accumulator, cv) => {
+            return accumulator.push(cv.clone()), accumulator;
+        }, []).sort((a, b) => a.arr[0] - b.arr[0]);
+        let center = sortedPoints[0];
+        sortedPoints = [center, ...sortedPoints.splice(1, sortedPoints.length).sort((a, b) => DimensionalAnalyzer.polarSort(a, b, center))];
+        for (let i = 0; i < sortedPoints.length; i++) {
+            let point = sortedPoints[i];
+            if (stack.length > 1) {
+                while (stack.length > 1 && Utilities.pointOrientation(stack[1], stack[0], point) <= 0) {
+                    stack.shift();
+                }
+            }
+            stack.unshift(point);
+        }
+        return stack;
     }
 }

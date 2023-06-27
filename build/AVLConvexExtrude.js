@@ -1,0 +1,58 @@
+import { AVLObject } from "./AVLObject.js";
+import { Utilities } from "./Utilities.js";
+import { VoxelStorage } from "./VoxelStorage.js";
+import { Point2D } from "./Point2D.js";
+import { AVLPolygon } from "./AVLPolygon.js";
+import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
+class AVLConvexExtrude3D extends AVLObject {
+    segmentsEdges = [];
+    segmentAnalyzers = [];
+    extrudeObjects = [];
+    passes = 1;
+    pointLowerFactoryMethod = PointFactoryMethods.getFactoryMethod(2);
+    pointFactoryMethod = PointFactoryMethods.getFactoryMethod(3);
+    useSort = false;
+    constructor(extrudeObjects) {
+        super(3);
+        this.extrudeObjects = extrudeObjects;
+    }
+    generateEdges() {
+        this.passes = -1;
+        this.useSort = false;
+        this.segmentAnalyzers = [];
+        this.segmentsEdges = [];
+        for (let i = 0; i < this.extrudeObjects.length - 1; i++) {
+            let startingVertices = this.extrudeObjects[i].vertices;
+            let endingVertices = this.extrudeObjects[i + 1].vertices;
+            this.segmentsEdges.push(new VoxelStorage(3));
+            this.segmentAnalyzers.push(new DimensionalAnalyzer(this.segmentsEdges[i]));
+            for (let sv of startingVertices) {
+                for (let ev of endingVertices) {
+                    let coordinates = Utilities.bresenham(sv, ev, 0);
+                    this.internalStorage.addCoordinates(coordinates, false);
+                    this.segmentsEdges[i].addCoordinates(coordinates, false);
+                }
+            }
+        }
+    }
+    extrude(shell, passes, useSort) {
+        this.passes = passes;
+        this.internalStorage.reset();
+        let referencePoint = new Point2D(0, 0);
+        let tempPolygon = new AVLPolygon([], 2);
+        for (let i = 0; i < this.segmentsEdges.length; i++) {
+            let sortedSpans = this.segmentsEdges[i].getSortedRange();
+            for (let j = 0; j < passes; j++) {
+                this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0], true, 1, referencePoint);
+                this.segmentAnalyzers[j].storageMap.forEach((value, key) => {
+                    tempPolygon.changeVertices(value).createEdges();
+                    if (shell) {
+                        tempPolygon.fillPolygon(1, true);
+                    }
+                    this.internalStorage.addCoordinates(tempPolygon.getCoordinateList(false, true).map((value) => tempPolygon.convertDimensionHigher(value, sortedSpans[j][0], key)), false);
+                });
+            }
+        }
+    }
+}

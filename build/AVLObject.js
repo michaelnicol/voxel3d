@@ -1,23 +1,16 @@
 import { VoxelStorage } from "./VoxelStorage.js";
 export class AVLObject {
     internalStorage;
-    pointFactoryMethod;
-    dimensionLowerFactoryMethod;
     maxDimensions;
-    constructor(maxDimensions, pointFactoryMethod, dimensionLowerFactoryMethod) {
+    constructor(maxDimensions) {
         this.maxDimensions = maxDimensions;
-        this.pointFactoryMethod = pointFactoryMethod;
-        this.dimensionLowerFactoryMethod = dimensionLowerFactoryMethod;
-        this.internalStorage = new VoxelStorage(maxDimensions, pointFactoryMethod);
+        this.internalStorage = new VoxelStorage(maxDimensions);
     }
     setStorage(newStorage) {
         this.internalStorage = newStorage;
     }
     hasCoordinate(p) {
         return this.internalStorage.hasCoordinate(p);
-    }
-    getFactoryMethod() {
-        return this.pointFactoryMethod;
     }
     getMaxDimensions() {
         return this.maxDimensions;

@@ -1,5 +1,7 @@
 import { AVLTree } from "./AVLTree.js";
 import { Point } from "./Point.js";
+import { Point2D } from "./Point2D.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 import { Utilities } from "./Utilities.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 import { VoxelStorageNode } from "./VoxelStorageNode.js";
@@ -21,12 +23,14 @@ export class DimensionalAnalyzer<E extends Point, K extends Point> {
    dimensionFactoryMethod!: Function
    dimensionLowerFactoryMethod!: Function
    isSorted: boolean = false
-   constructor(dimensionFactoryMethod: Function, dimensionLowerFactoryMethod: Function, tree: VoxelStorage<E>) {
-      this.dimensionLowerFactoryMethod = dimensionLowerFactoryMethod
-      this.dimensionFactoryMethod = dimensionFactoryMethod
+   usedSortMethod: number | undefined;
+   sortMethodMeta: any;
+   constructor(tree: VoxelStorage<E>) {
+      this.dimensionLowerFactoryMethod = PointFactoryMethods.getFactoryMethod(tree.getMaxDimensions()-1)
+      this.dimensionFactoryMethod = PointFactoryMethods.getFactoryMethod(tree.getMaxDimensions())
       this.#tree = tree;
    }
-   generateStorageMap(keyDimension: number, useSort: boolean): Map<number, K[]> {
+   generateStorageMap(keyDimension: number, useSort: boolean, sortMethod: number | undefined = undefined, sortMethodMeta: any): Map<number, K[]> {
       if (this.#tree.getCoordinateCount() > 0) {
          this.keyDimension = keyDimension;
          this.storageMap = new Map<number, K[]>()
@@ -37,12 +41,31 @@ export class DimensionalAnalyzer<E extends Point, K extends Point> {
             }
             (this.storageMap.get(point[this.keyDimension]) as K[]).push(this.dimensionLowerFactoryMethod(point.filter((v, i) => i != this.keyDimension)) as K)
          }
-         const referencePoint = this.dimensionLowerFactoryMethod(new Array(this.#tree.getMaxDimensions() - 1).fill(0));
          if (useSort) {
-            this.storageMap.forEach((v: K[]) => v.sort((a: K, b: K) => Utilities.pythagorean(referencePoint, b) - Utilities.pythagorean(referencePoint, a)))
-         } 
-         this.isSorted = useSort
+            this.storageMap.forEach((v: K[]) => v.sort((a: K, b: K) => {
+               if (sortMethod === 0) {
+                  return DimensionalAnalyzer.pythagoreanSort(a, b, sortMethodMeta as K)
+               } else if (sortMethod === 1) {
+                  return DimensionalAnalyzer.polarSort(a, b, sortMethodMeta as K)
+               }
+               throw new Error("No Sort Method Found For: "+sortMethod)
+            }))
+         }
       }
+      this.isSorted = useSort
+      this.usedSortMethod = sortMethod;
+      this.sortMethodMeta = sortMethodMeta
       return this.storageMap;
+   }
+   static pythagoreanSort<K extends Point>(a: K, b: K, referencePoint: K) {
+      return Utilities.pythagorean(referencePoint, b) - Utilities.pythagorean(referencePoint, a)
+   }
+   static #radToDegConstant = 180 / Math.PI
+   static polarSort<K extends Point>(a: K, b: K, referencePoint: K) {
+      let angle1 = Math.atan2((a.arr[1] - referencePoint.arr[1]), (a.arr[0] - referencePoint.arr[0])) * DimensionalAnalyzer.#radToDegConstant;
+      angle1 += angle1 < 0 ? 360 : 0
+      let angle2 = Math.atan2((b.arr[1] - referencePoint.arr[1]), (b.arr[0] - referencePoint.arr[0])) * DimensionalAnalyzer.#radToDegConstant;
+      angle2 += angle2 < 0 ? 360 : 0
+      return angle1 - angle2
    }
 }

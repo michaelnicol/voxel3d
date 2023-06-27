@@ -6,10 +6,10 @@ export class HashObject {
     constructor(maxDimensions, pointFactoryMethod) {
         this.maxDimensions = maxDimensions;
         this.pointFactoryMethod = pointFactoryMethod;
-        this.internalStorage = new HashStorage(maxDimensions, pointFactoryMethod);
+        this.internalStorage = new HashStorage(maxDimensions);
     }
-    setStorage(newStorage) {
-        this.internalStorage = newStorage;
+    reset() {
+        this.internalStorage.reset();
     }
     hasCoordinate(p) {
         return this.internalStorage.hasCoordinate(p);
@@ -23,8 +23,8 @@ export class HashObject {
     getCoordinateCount() {
         return this.internalStorage.getCoordinateCount();
     }
-    getCoordinateList(duplicates) {
-        return this.internalStorage.getCoordinateList(duplicates);
+    getCoordinateList(duplicates, instances) {
+        return this.internalStorage.getCoordinateList(duplicates, instances);
     }
     addCoordinates(coordinatesToAdd, allowDuplicates) {
         for (let c of coordinatesToAdd) {
@@ -42,14 +42,6 @@ export class HashObject {
         return this;
     }
     toPrint() {
-        let list = this.internalStorage.getCoordinateList(true);
-        let str = "[";
-        for (let i = 0; i < list.length; i++) {
-            str += list[i].toPrint();
-            if (i + 1 != list.length) {
-                str += ",";
-            }
-        }
-        return str + "]";
+        return JSON.stringify(this.internalStorage.getCoordinateList(true, false));
     }
 }

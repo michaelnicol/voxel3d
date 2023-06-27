@@ -1,18 +1,19 @@
 import { Point } from "./Point.js";
 import { HashStorageNode } from "./HashStorageNode.js";
 import { ValidObject } from "./ValidObject.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 
 export class HashStorage<E extends Point> implements ValidObject {
    hashMap = new Map<number, HashStorageNode<E>>;
    maxDimensions!: number;
    pointFactoryMethod!: Function;
    coordinateCount: number = 0;
-   constructor(maxDimensions: number, pointFactoryMethod: Function) {
+   constructor(maxDimensions: number) {
       if (maxDimensions < 1 || maxDimensions === undefined) {
          throw new Error("Invalid Depth: Can not be less than 1 or undefined: " + maxDimensions)
       }
       this.maxDimensions = maxDimensions;
-      this.pointFactoryMethod = pointFactoryMethod;
+      this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions);
    }
 
    reset() {
@@ -51,6 +52,12 @@ export class HashStorage<E extends Point> implements ValidObject {
       return true;
    }
 
+   addCoordinates(coordinates: E[], allowDuplicates: boolean): void {
+      for (let point of coordinates) {
+         this.addCoordinate(point, allowDuplicates)
+      }
+   }
+
    addCoordinate(p: E, allowDuplicates: boolean): void {
       if (this.hasCoordinate(p) && !allowDuplicates) {
          return;
@@ -61,7 +68,7 @@ export class HashStorage<E extends Point> implements ValidObject {
       var workingMap: Map<number, HashStorageNode<E>> = this.hashMap;
       for (let i = 0; i < p.arr.length; i++) {
          if (workingMap.has(p.arr[i])) {
-            let targetNode: HashStorageNode<E> = this.hashMap.get(p.arr[i]) as HashStorageNode<E>;
+            let targetNode: HashStorageNode<E> = workingMap.get(p.arr[i]) as HashStorageNode<E>;
             targetNode.increaseAmount();
             workingMap = targetNode.getHashMap();
          } else {
@@ -71,26 +78,29 @@ export class HashStorage<E extends Point> implements ValidObject {
       }
    }
 
-   #getCoordinateListRecursiveCall(currentNode: HashStorageNode<E>, currentCoordinate: number[], coordinateList: E[], depth: number, duplicates: boolean) {
+   #getCoordinatesListRecursiveCall(currentNode: HashStorageNode<E>, currentCoordinate: number[], coordinateList: E[] | number[][], depth: number, duplicates: boolean, instances: boolean) {
       currentCoordinate.push(currentNode.getValue());
       if (depth === this.maxDimensions) {
-         if (duplicates) {
-            for (let i = 0; i < currentNode.amount; i++) {
-               coordinateList.push(this.pointFactoryMethod(currentCoordinate))
+         for (let i = 0; i < currentNode.amount; i++) {
+            if (instances) {
+               (coordinateList as E[]).push(this.pointFactoryMethod(currentCoordinate) as E)
+            } else {
+               (coordinateList as number[][]).push([...(currentCoordinate as number[])] as number[])
             }
-         } else {
-            coordinateList.push(this.pointFactoryMethod(currentCoordinate))
+            if (!duplicates) {
+               break;
+            }
          }
       } else {
          for (let [key, value] of currentNode.getHashMap()) {
-            this.#getCoordinateListRecursiveCall(value, currentCoordinate, coordinateList, ++depth, duplicates)
+            this.#getCoordinatesListRecursiveCall(value, [...currentCoordinate], coordinateList, depth + 1, duplicates, instances)
          }
       }
    }
-   getCoordinateList(allowDuplicates: boolean): E[] {
-      let coordinateList: E[] = [];
+   getCoordinateList(allowDuplicates: boolean, instances: boolean): E[] | number[][] {
+      let coordinateList: E[] | number[][] = [];
       for (let [key, value] of this.hashMap) {
-         this.#getCoordinateListRecursiveCall(value, [], coordinateList, 1, allowDuplicates)
+         this.#getCoordinatesListRecursiveCall(value, [], coordinateList, 1, allowDuplicates, instances)
       }
       return coordinateList;
    }
@@ -98,7 +108,7 @@ export class HashStorage<E extends Point> implements ValidObject {
       return this;
    }
    toPrint(): string {
-      return "" + this.getCoordinateList(true);
+      return JSON.stringify(this.getCoordinateList(true, false));
    }
    getCoordinateCount(): number {
       return this.coordinateCount;

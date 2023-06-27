@@ -9,11 +9,11 @@ export class HashObject<E extends Point> implements ValidObject {
    constructor(maxDimensions: number, pointFactoryMethod: Function) {
       this.maxDimensions = maxDimensions;
       this.pointFactoryMethod = pointFactoryMethod;
-      this.internalStorage = new HashStorage<E>(maxDimensions, pointFactoryMethod)
+      this.internalStorage = new HashStorage<E>(maxDimensions)
    }
 
-   setStorage(newStorage: HashStorage<E>) {
-      this.internalStorage = newStorage;
+   reset() {
+      this.internalStorage.reset();
    }
 
    hasCoordinate(p: E): boolean {
@@ -32,8 +32,8 @@ export class HashObject<E extends Point> implements ValidObject {
       return this.internalStorage.getCoordinateCount();
    }
 
-   getCoordinateList(duplicates: boolean): E[] {
-      return this.internalStorage.getCoordinateList(duplicates);
+   getCoordinateList(duplicates: boolean, instances: boolean): E[] | number[][] {
+      return this.internalStorage.getCoordinateList(duplicates, instances);
    }
 
    addCoordinates(coordinatesToAdd: E[], allowDuplicates: boolean): HashObject<E> {
@@ -55,14 +55,6 @@ export class HashObject<E extends Point> implements ValidObject {
    }
 
    toPrint(): string {
-      let list: E[] = this.internalStorage.getCoordinateList(true);
-      let str = "[";
-      for (let i = 0; i < list.length; i++) {
-         str+=list[i].toPrint()
-         if (i + 1 != list.length) {
-            str+=","
-         }
-      }
-      return str+"]"
+      return JSON.stringify(this.internalStorage.getCoordinateList(true, false) as number[][]);
    }
 }

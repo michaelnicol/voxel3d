@@ -4,17 +4,14 @@ import { ValidObject } from "./ValidObject.js";
 import { Point2D } from "./Point2D.js";
 import { Point3D } from "./Point3D.js";
 import { Utilities } from "./Utilities.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 
-export class AVLObject<E extends Point, K extends Point> implements ValidObject {
+export class AVLObject<E extends Point> implements ValidObject {
    internalStorage: VoxelStorage<E>;
-   pointFactoryMethod: Function;
-   dimensionLowerFactoryMethod: Function;
    maxDimensions: number;
-   constructor(maxDimensions: number, pointFactoryMethod: Function, dimensionLowerFactoryMethod: Function) {
+   constructor(maxDimensions: number) {
       this.maxDimensions = maxDimensions;
-      this.pointFactoryMethod = pointFactoryMethod;
-      this.dimensionLowerFactoryMethod = dimensionLowerFactoryMethod;
-      this.internalStorage = new VoxelStorage<E>(maxDimensions, pointFactoryMethod)
+      this.internalStorage = new VoxelStorage<E>(maxDimensions)
    }
 
    setStorage(newStorage: VoxelStorage<E>) {
@@ -23,10 +20,6 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
 
    hasCoordinate(p: E): boolean {
       return this.internalStorage.hasCoordinate(p);
-   }
-
-   getFactoryMethod(): Function {
-      return this.pointFactoryMethod;
    }
 
    getMaxDimensions(): number {
@@ -41,14 +34,14 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
       return this.internalStorage.getCoordinateList(duplicates, instances);
    }
 
-   addCoordinates(coordinatesToAdd: E[], allowDuplicates: boolean): AVLObject<E, K> {
+   addCoordinates(coordinatesToAdd: E[], allowDuplicates: boolean): AVLObject<E> {
       for (let c of coordinatesToAdd) {
          this.internalStorage.addCoordinate(c, allowDuplicates);
       }
       return this;
    }
 
-   removeCoordinates(coordinatesToRemove: E[]): AVLObject<E,K> {
+   removeCoordinates(coordinatesToRemove: E[]): AVLObject<E> {
       let removeRanges: number[] = [];
       for (let c of coordinatesToRemove) {
          removeRanges.push(...this.internalStorage.removeCoordinate(c, false));
@@ -57,7 +50,7 @@ export class AVLObject<E extends Point, K extends Point> implements ValidObject 
       return this;
    }
 
-   preHash(): AVLObject<E, K> {
+   preHash(): AVLObject<E> {
       return this;
    }
 

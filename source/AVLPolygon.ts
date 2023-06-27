@@ -7,57 +7,78 @@ import { Point3D } from "./Point3D.js";
 import { Utilities } from "./Utilities.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js"
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 
 /**
  * E is the dimension of the polygon, K is the one less.
  */
-export class AVLPolygon extends AVLObject<Point3D, Point2D> {
-   vertices: Point3D[] = []
-   #storageMap!: DimensionalAnalyzer<Point3D, Point2D>;
-   constructor(v: Point3D[]) {
-      super(3, new Point3D(0,0,0).factoryMethod, new Point2D(0,0).factoryMethod)
+export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> {
+   vertices: E[] = []
+   #storageMap!: DimensionalAnalyzer<E, K>;
+   passes: number = -1;
+   useSort: boolean = false;
+   pointLowerFactoryMethod!: Function;
+   pointFactoryMethod!: Function;
+   constructor(v: E[], maxDimensions: number) {
+      super(maxDimensions)
+      this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions)
+      this.pointLowerFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions - 1)
       for (let coord of v) {
-         this.vertices.push(coord.clone() as Point3D)
+         this.vertices.push(coord.clone() as E)
          this.internalStorage.addCoordinate(coord, false)
       }
-      this.#storageMap = new DimensionalAnalyzer<Point3D, Point2D>(this.pointFactoryMethod, this.dimensionLowerFactoryMethod, this.internalStorage)
+      this.#storageMap = new DimensionalAnalyzer<E, K>(this.internalStorage)
    }
-   createEdges(): AVLPolygon{
+   changeVertices(v: E[]): AVLPolygon<E, K> {
+      this.vertices = []
       this.internalStorage.reset()
+      v.forEach((coord: E) => this.vertices.push(coord.clone() as E))
+      this.useSort = false
+      this.passes = -1;
+      return this;
+   }
+   createEdges(): AVLPolygon<E, K> {
+      this.internalStorage.reset()
+      this.useSort = false
+      this.passes = -1;
       for (let i = 0; i < this.vertices.length; i++) {
          if (i + 1 === this.vertices.length) {
-            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0) as Point3D[], false)
+            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0) as E[], false)
          } else {
-            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0) as Point3D[], false)
+            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0) as E[], false)
          }
       }
       return this;
    }
 
-   #convertDimensionHigher(p: Point2D, insertionIndex: number, insertionValue: number): Point3D {
+   convertDimensionHigher(p: K, insertionIndex: number, insertionValue: number): E {
       let x = [...p.arr];
       x.splice(insertionIndex, 0, insertionValue)
       return this.pointFactoryMethod(x)
    }
 
-   fillPolygon(passes: number, useSort: boolean): AVLPolygon {
+   fillPolygon(passes: number, useSort: boolean): AVLPolygon<E, K> {
       if (passes > this.maxDimensions) {
          throw new Error("Passes is greater than max dimensions")
       }
+      this.passes = passes;
+      this.useSort = useSort;
       this.internalStorage.findRangeOutdatedRanges()
-      let sortedSpans = this.internalStorage.getSortedRangeIndices();
+      let sortedSpans = this.internalStorage.getSortedRange();
+      let referencePoint = this.pointLowerFactoryMethod()
       for (let i = 0; i < passes; i++) {
-         this.#storageMap.generateStorageMap(sortedSpans[i][0], useSort)
+         this.#storageMap.generateStorageMap(sortedSpans[i][0], useSort, 0, referencePoint)
          this.#storageMap.storageMap.forEach((value, key) => {
             if (useSort) {
-               let startingValue: Point3D = this.#convertDimensionHigher(value[0], this.#storageMap.keyDimension, key) as Point3D
-               let endingValue: Point3D = this.#convertDimensionHigher(value[value.length - 1], this.#storageMap.keyDimension, key) as Point3D
-               this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0) as Point3D[], false)
+               let startingValue: E = this.convertDimensionHigher(value[0], this.#storageMap.keyDimension, key) as E
+               let endingValue: E = this.convertDimensionHigher(value[value.length - 1], this.#storageMap.keyDimension, key) as E
+               this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0) as E[], false)
             } else {
                for (let j = 0; j < value.length - 1; j++) {
-                  let startingValue: Point3D = this.#convertDimensionHigher(value[j], this.#storageMap.keyDimension, key) as Point3D;
-                  let endingValue: Point3D = this.#convertDimensionHigher(value[j + 1], this.#storageMap.keyDimension, key) as Point3D;
-                  this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0) as Point3D[], false);
+                  let startingValue: E = this.convertDimensionHigher(value[j], this.#storageMap.keyDimension, key) as E;
+                  let endingValue: E = this.convertDimensionHigher(value[j + 1], this.#storageMap.keyDimension, key) as E;
+                  this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0) as E[], false);
+
                }
             }
          })

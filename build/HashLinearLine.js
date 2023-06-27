@@ -1,5 +1,4 @@
 import { HashObject } from "./HashObject.js";
-import { HashStorage } from "./HashStorage.js";
 import { Utilities } from "./Utilities.js";
 export class HashLinearLine extends HashObject {
     startPoint;
@@ -11,14 +10,16 @@ export class HashLinearLine extends HashObject {
         this.internalStorage.addCoordinate(startPoint, false);
         this.internalStorage.addCoordinate(endPoint, false);
     }
+    // Will Provide A Problem
     generateLine() {
-        this.setStorage(Utilities.bresenham(this.startPoint, this.endPoint, 2));
+        this.internalStorage.reset();
+        this.internalStorage.addCoordinates(Utilities.bresenham(this.startPoint, this.endPoint, 0), false);
         return this;
     }
     changeEndPoints(startPoint, endPoint) {
         this.startPoint = startPoint;
         this.endPoint = endPoint;
-        this.setStorage(new HashStorage(this.maxDimensions, this.pointFactoryMethod));
+        this.internalStorage.reset();
         this.internalStorage.addCoordinate(startPoint, false);
         this.internalStorage.addCoordinate(endPoint, false);
         return this;

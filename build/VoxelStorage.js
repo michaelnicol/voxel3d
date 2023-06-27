@@ -2,6 +2,7 @@ import { VoxelStorageNode } from "./VoxelStorageNode.js";
 import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 import { Point3D } from "./Point3D.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 export class VoxelStorage {
     /**
      * This object holds a hashmap of the dimension as the key, and the value is the extremes for that dimension. Dimensions start at zero for x.
@@ -35,7 +36,7 @@ export class VoxelStorage {
      * A factory method is needed because TypeScript can not create instances of generics at run time. Since coordinates are not stored as points internally (but rather nodes on a tree),
      * a factor method must be used to convert collections of tree nodes back into point instances.
      */
-    constructor(maxDimensions, pointFactoryMethod) {
+    constructor(maxDimensions) {
         if (maxDimensions < 1) {
             throw new Error("Invalid Depth: Can not be less than 1");
         }
@@ -44,7 +45,7 @@ export class VoxelStorage {
             this.#dimensionRange.set(i, [Number.MAX_SAFE_INTEGER, 0, Number.MIN_SAFE_INTEGER, 0]);
             this.outdatedDimensionRanges.set(i, false);
         }
-        this.pointFactoryMethod = pointFactoryMethod;
+        this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions);
     }
     /**
      * @returns Amount of dimensions this tree contains
@@ -358,7 +359,7 @@ export class VoxelStorage {
                         dimensionEntry[3] -= 1;
                     }
                 }
-                // Otherwise, this number is inbetween the min and the max, and the range does not need to be recalculated.
+                // Otherwise, this number is between the min and the max, and the range does not need to be recalculated.
             }
             currentTree = currentTree.removeItem(arr[i]).getValue();
         }
@@ -412,7 +413,7 @@ export class VoxelStorage {
         else {
             currentCoordinate.push(currentNode.getValue().getData());
             let downwardSubTree = currentNode.getValue().getBinarySubTreeRoot();
-            this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, ++depth, duplicates, instances);
+            this.#getCoordinatesRecursiveCall(downwardSubTree, [...currentCoordinate], allCoordinates, depth + 1, duplicates, instances);
         }
     }
     /**
@@ -463,7 +464,7 @@ export class VoxelStorage {
        * @returns Within the dimensionRange, dimensions are stored zero through n (key) and the min and maxes are stored (value). The span is the difference between the min and the max of each dimension.
        * This function will return a list of [dimensionNumber, dimensionSpan] elements sorted by span.
     */
-    getSortedRangeIndices() {
+    getSortedRange() {
         // Each element is a [dimensionNumber, dimensionSpan]
         let list = [];
         // For each range in the hashmap

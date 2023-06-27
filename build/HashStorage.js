@@ -1,15 +1,16 @@
 import { HashStorageNode } from "./HashStorageNode.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 export class HashStorage {
     hashMap = new Map;
     maxDimensions;
     pointFactoryMethod;
     coordinateCount = 0;
-    constructor(maxDimensions, pointFactoryMethod) {
+    constructor(maxDimensions) {
         if (maxDimensions < 1 || maxDimensions === undefined) {
             throw new Error("Invalid Depth: Can not be less than 1 or undefined: " + maxDimensions);
         }
         this.maxDimensions = maxDimensions;
-        this.pointFactoryMethod = pointFactoryMethod;
+        this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions);
     }
     reset() {
         this.hashMap = new Map;
@@ -45,6 +46,11 @@ export class HashStorage {
         }
         return true;
     }
+    addCoordinates(coordinates, allowDuplicates) {
+        for (let point of coordinates) {
+            this.addCoordinate(point, allowDuplicates);
+        }
+    }
     addCoordinate(p, allowDuplicates) {
         if (this.hasCoordinate(p) && !allowDuplicates) {
             return;
@@ -55,7 +61,7 @@ export class HashStorage {
         var workingMap = this.hashMap;
         for (let i = 0; i < p.arr.length; i++) {
             if (workingMap.has(p.arr[i])) {
-                let targetNode = this.hashMap.get(p.arr[i]);
+                let targetNode = workingMap.get(p.arr[i]);
                 targetNode.increaseAmount();
                 workingMap = targetNode.getHashMap();
             }
@@ -65,28 +71,31 @@ export class HashStorage {
             }
         }
     }
-    #getCoordinateListRecursiveCall(currentNode, currentCoordinate, coordinateList, depth, duplicates) {
+    #getCoordinatesListRecursiveCall(currentNode, currentCoordinate, coordinateList, depth, duplicates, instances) {
         currentCoordinate.push(currentNode.getValue());
         if (depth === this.maxDimensions) {
-            if (duplicates) {
-                for (let i = 0; i < currentNode.amount; i++) {
+            for (let i = 0; i < currentNode.amount; i++) {
+                if (instances) {
                     coordinateList.push(this.pointFactoryMethod(currentCoordinate));
                 }
-            }
-            else {
-                coordinateList.push(this.pointFactoryMethod(currentCoordinate));
+                else {
+                    coordinateList.push([...currentCoordinate]);
+                }
+                if (!duplicates) {
+                    break;
+                }
             }
         }
         else {
             for (let [key, value] of currentNode.getHashMap()) {
-                this.#getCoordinateListRecursiveCall(value, currentCoordinate, coordinateList, ++depth, duplicates);
+                this.#getCoordinatesListRecursiveCall(value, [...currentCoordinate], coordinateList, depth + 1, duplicates, instances);
             }
         }
     }
-    getCoordinateList(allowDuplicates) {
+    getCoordinateList(allowDuplicates, instances) {
         let coordinateList = [];
         for (let [key, value] of this.hashMap) {
-            this.#getCoordinateListRecursiveCall(value, [], coordinateList, 1, allowDuplicates);
+            this.#getCoordinatesListRecursiveCall(value, [], coordinateList, 1, allowDuplicates, instances);
         }
         return coordinateList;
     }
@@ -94,7 +103,7 @@ export class HashStorage {
         return this;
     }
     toPrint() {
-        return "" + this.getCoordinateList(true);
+        return JSON.stringify(this.getCoordinateList(true, false));
     }
     getCoordinateCount() {
         return this.coordinateCount;

@@ -13,14 +13,16 @@ export class HashLinearLine<E extends Point> extends HashObject<E> {
       this.internalStorage.addCoordinate(startPoint, false);
       this.internalStorage.addCoordinate(endPoint, false);
    }
+   // Will Provide A Problem
    generateLine(): HashLinearLine<E> {
-      this.setStorage(Utilities.bresenham(this.startPoint, this.endPoint, 2) as HashStorage<E>);
+      this.internalStorage.reset()
+      this.internalStorage.addCoordinates(Utilities.bresenham(this.startPoint, this.endPoint, 0) as E[], false)
       return this;
    }
    changeEndPoints(startPoint: E, endPoint: E): HashLinearLine<E> {
       this.startPoint = startPoint;
       this.endPoint = endPoint;
-      this.setStorage(new HashStorage<E>(this.maxDimensions, this.pointFactoryMethod));
+      this.internalStorage.reset()
       this.internalStorage.addCoordinate(startPoint, false);
       this.internalStorage.addCoordinate(endPoint, false);
       return this;

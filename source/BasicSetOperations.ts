@@ -9,7 +9,7 @@ export class BasicSetOperations {
    constructor() {throw new Error("Can not extend or instance this class")}
    static INTERSECTION(objs: BaseObject<Point>[], returnList: boolean): Point[] | VoxelStorage<Point> {
       const points: Point[] = []
-      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(objs[0].getMaxDimensions(), objs[0].getFactoryMethod());
+      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(objs[0].getMaxDimensions());
       let smallestObject: BaseObject<Point> = objs[0];
       let smallestObjectIndex = 0;
       for (let i = 0; i < objs.length; i++) {
@@ -39,7 +39,7 @@ export class BasicSetOperations {
    }
    static UNION(objs: BaseObject<Point>[], returnList: boolean): Point[] | VoxelStorage<Point> {
       const points: Point[] = []
-      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(objs[0].getMaxDimensions(), objs[0].getFactoryMethod());
+      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(objs[0].getMaxDimensions());
       let smallestObject: BaseObject<Point> = objs[0];
       let smallestObjectIndex = 0;
       for (let i = 0; i < objs.length; i++) {
@@ -71,7 +71,7 @@ export class BasicSetOperations {
          throw new Error("Can not subtract varying dimensions")
       }
       const points: Point[] = []
-      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions(), a.getFactoryMethod());
+      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions());
       const coordinates: Point[] = b.getCoordinateList(false, false) as Point[];
       for (let coord of coordinates) {
          if (!a.hasCoordinate(coord)) {
@@ -90,7 +90,7 @@ export class BasicSetOperations {
    }
    static COMPLIMENT(a: BaseObject<Point>, universalSet: BaseObject<Point>[], returnList: boolean): Point[] | VoxelStorage<Point> {
       const points: Point[] = []
-      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions(), a.getFactoryMethod());
+      const voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(a.getMaxDimensions());
       for (let o of universalSet) {
          if (o != a) {
             let currentCoordinates: Point[] = o.getCoordinateList(false, false) as Point[];
