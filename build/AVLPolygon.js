@@ -12,6 +12,8 @@ export class AVLPolygon extends AVLObject {
     useSort = false;
     pointLowerFactoryMethod;
     pointFactoryMethod;
+    hasEdges = false;
+    hasFill = false;
     constructor(v, maxDimensions) {
         super(maxDimensions);
         this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions);
@@ -28,12 +30,16 @@ export class AVLPolygon extends AVLObject {
         v.forEach((coord) => this.vertices.push(coord.clone()));
         this.useSort = false;
         this.passes = -1;
+        this.hasEdges = false;
+        this.hasFill = false;
         return this;
     }
     createEdges() {
         this.internalStorage.reset();
         this.useSort = false;
         this.passes = -1;
+        this.hasEdges = true;
+        this.hasFill = false;
         for (let i = 0; i < this.vertices.length; i++) {
             if (i + 1 === this.vertices.length) {
                 this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0), false);
@@ -44,37 +50,46 @@ export class AVLPolygon extends AVLObject {
         }
         return this;
     }
-    convertDimensionHigher(p, insertionIndex, insertionValue) {
-        let x = [...p.arr];
-        x.splice(insertionIndex, 0, insertionValue);
-        return this.pointFactoryMethod(x);
-    }
     fillPolygon(passes, useSort) {
         if (passes > this.maxDimensions) {
             throw new Error("Passes is greater than max dimensions");
         }
+        this.hasFill = true;
         this.passes = passes;
         this.useSort = useSort;
         this.internalStorage.findRangeOutdatedRanges();
         let sortedSpans = this.internalStorage.getSortedRange();
-        let referencePoint = this.pointLowerFactoryMethod();
+        let referencePoint = this.pointLowerFactoryMethod(new Array(this.maxDimensions - 1).fill(0));
         for (let i = 0; i < passes; i++) {
-            this.#storageMap.generateStorageMap(sortedSpans[i][0], useSort, 0, referencePoint);
+            this.#storageMap.generateStorageMap(sortedSpans[i][0]);
             this.#storageMap.storageMap.forEach((value, key) => {
+                value = Utilities.pythagoreanSort(value, referencePoint);
                 if (useSort) {
-                    let startingValue = this.convertDimensionHigher(value[0], this.#storageMap.keyDimension, key);
-                    let endingValue = this.convertDimensionHigher(value[value.length - 1], this.#storageMap.keyDimension, key);
+                    let startingValue = Utilities.convertDimensionHigher(value[0], this.#storageMap.keyDimension, key, this.maxDimensions - 1);
+                    let endingValue = Utilities.convertDimensionHigher(value[value.length - 1], this.#storageMap.keyDimension, key, this.maxDimensions - 1);
                     this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0), false);
                 }
                 else {
                     for (let j = 0; j < value.length - 1; j++) {
-                        let startingValue = this.convertDimensionHigher(value[j], this.#storageMap.keyDimension, key);
-                        let endingValue = this.convertDimensionHigher(value[j + 1], this.#storageMap.keyDimension, key);
+                        let startingValue = Utilities.convertDimensionHigher(value[j], this.#storageMap.keyDimension, key, this.maxDimensions - 1);
+                        let endingValue = Utilities.convertDimensionHigher(value[j + 1], this.#storageMap.keyDimension, key, this.maxDimensions - 1);
                         this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0), false);
                     }
                 }
             });
         }
         return this;
+    }
+    clone() {
+        let polygon = new AVLPolygon([...this.vertices].reduce((accumulator, value) => {
+            return accumulator.push(value), accumulator;
+        }, []), this.maxDimensions);
+        if (this.hasEdges) {
+            polygon.createEdges();
+        }
+        if (this.hasFill) {
+            polygon.fillPolygon(this.passes, this.useSort);
+        }
+        return polygon;
     }
 }

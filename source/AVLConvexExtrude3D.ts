@@ -10,7 +10,7 @@ import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
 import { Point1D } from "./Point1D.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
 
-class AVLConvexExtrude3D extends AVLObject<Point3D> {
+export class AVLConvexExtrude3D extends AVLObject<Point3D> {
    segmentsEdges: VoxelStorage<Point3D>[] = []
    segmentAnalyzers: DimensionalAnalyzer<Point3D, Point2D>[] = []
    extrudeObjects: AVLPolygon<Point3D, Point2D>[] = []
@@ -18,13 +18,23 @@ class AVLConvexExtrude3D extends AVLObject<Point3D> {
    pointLowerFactoryMethod: Function = PointFactoryMethods.getFactoryMethod(2);
    pointFactoryMethod: Function = PointFactoryMethods.getFactoryMethod(3)
    useSort: boolean = false;
+   shell: boolean = false;
+   shellFillEndCaps: boolean = false;
    constructor(extrudeObjects: AVLPolygon<Point3D, Point2D>[]) {
       super(3)
-      this.extrudeObjects = extrudeObjects;
+      this.extrudeObjects = [...extrudeObjects];
+      this.extrudeObjects.forEach(v => {
+         if (!v.hasEdges) {
+            v.createEdges()
+         }
+         return v;
+      })
    }
    generateEdges() {
       this.passes = -1;
       this.useSort = false
+      this.shell = false;
+      this.shellFillEndCaps = false
       this.segmentAnalyzers = []
       this.segmentsEdges = []
       for (let i = 0; i < this.extrudeObjects.length - 1; i++) {
@@ -41,23 +51,42 @@ class AVLConvexExtrude3D extends AVLObject<Point3D> {
          }
       }
    }
-   extrude(shell: boolean, passes: number, useSort: boolean) {
+   extrude(shell: boolean, passes: number, useSort: boolean, shellFillEndCaps: boolean) {
       this.passes = passes;
+      this.shell = shell;
+      this.useSort = useSort;
+      this.shellFillEndCaps = shellFillEndCaps;
       this.internalStorage.reset()
-      let referencePoint = new Point2D(0, 0)
       let tempPolygon = new AVLPolygon<Point2D, Point1D>([], 2)
       for (let i = 0; i < this.segmentsEdges.length; i++) {
          let sortedSpans = this.segmentsEdges[i].getSortedRange();
          for (let j = 0; j < passes; j++) {
-            this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0], true, 1, referencePoint)
+            this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0])
             this.segmentAnalyzers[j].storageMap.forEach((value: Point2D[], key: number) => {
-               tempPolygon.changeVertices(value).createEdges()
+               tempPolygon.changeVertices(Utilities.convexHull(value)).createEdges()
                if (shell) {
                   tempPolygon.fillPolygon(1, true)
                }
-               this.internalStorage.addCoordinates(((tempPolygon.getCoordinateList(false, true) as Point2D[]).map((value: Point2D) => tempPolygon.convertDimensionHigher(value, sortedSpans[j][0], key)) as Point3D[]), false)
+               var coordinatesSlice: Point2D[] = tempPolygon.getCoordinateList(false, true) as Point2D[];
+               var unProjectedCoordinates: Point3D[] = coordinatesSlice.reduce((accumulator, value) => {
+                  return accumulator.push(Utilities.convertDimensionHigher(value, sortedSpans[j][0], key, 2)), accumulator
+               }, [] as Point3D[])
+               this.internalStorage.addCoordinates(unProjectedCoordinates, false)
             })
          }
       }
+      if (this.extrudeObjects.length > 0 && shellFillEndCaps) {
+         const startCap: AVLPolygon<Point3D, Point1D> = this.extrudeObjects[0].clone()
+         const endCap: AVLPolygon<Point3D, Point1D> = this.extrudeObjects[this.extrudeObjects.length - 1].clone()
+         if (!startCap.hasFill) {
+            startCap.fillPolygon(passes, useSort)
+         }
+         if (!endCap.hasFill) {
+            startCap.fillPolygon(passes, useSort)
+         }
+         this.internalStorage.addCoordinates(startCap.getCoordinateList(false, true) as Point3D[], false)
+         this.internalStorage.addCoordinates(endCap.getCoordinateList(false, true) as Point3D[], false)
+      }
+      // Create the end caps for the shell.
    }
 }

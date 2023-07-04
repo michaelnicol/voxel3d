@@ -1,6 +1,7 @@
 import { HashStorage } from "./HashStorage.js";
 import { VoxelStorage } from "./VoxelStorage.js";
-import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
+import { Point2D } from "./Point2D.js";
+import { PointFactoryMethods } from "./PointFactoryMethods.js";
 export class Utilities {
     static pythagorean(p1, p2) {
         if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {
@@ -97,18 +98,63 @@ export class Utilities {
             currentPoint[indexOfGreatest] += increments[indexOfGreatest];
         }
     }
+    static pythagoreanSort(points, referencePoint) {
+        return points.sort((a, b) => Utilities.pythagorean(referencePoint, a) - Utilities.pythagorean(referencePoint, b));
+    }
+    static #radToDegConstant = 180 / Math.PI;
+    /**
+     * Polar sorts a given list of points. If any amount of points share the same polar angle, the furthest polar point is kept.
+     *
+     * @param points
+     */
+    static polarSort(points, removeCollinear, referencePoint) {
+        let sortedPoints = points.reduce((accumulator, cv) => {
+            return accumulator.push(cv.clone()), accumulator;
+        }, []).sort((a, b) => a.arr[1] - b.arr[1]).sort((a, b) => a.arr[0] - b.arr[0]);
+        const assertedRF = referencePoint == undefined ? sortedPoints[0] : referencePoint;
+        const polarMap = new Map();
+        sortedPoints.forEach((value) => {
+            let angle = Math.atan2((value.arr[1] - assertedRF.arr[1]), (value.arr[0] - assertedRF.arr[0])) * Utilities.#radToDegConstant;
+            angle += angle < 0 ? 360 : 0;
+            polarMap.has(angle) ? polarMap.get(angle)?.push(value) : polarMap.set(angle, [value]);
+        });
+        if (removeCollinear) {
+            polarMap.forEach((value, key) => {
+                value = [Utilities.pythagoreanSort(value, assertedRF)[0]];
+            });
+        }
+        let sortedKeys = Object.keys(polarMap).map(value => Number(value)).sort((a, b) => a - b);
+        let returnPoints = [];
+        sortedKeys.forEach(value => returnPoints.push(polarMap.get(value)[0]));
+        return returnPoints;
+    }
     static pointOrientation = (p1, p2, p3) => {
         // returns slope from p1 to p2 minus p2 to p3
         return (p2.arr[0] - p1.arr[0]) * (p3.arr[1] - p1.arr[1]) - (p2.arr[1] - p1.arr[1]) * (p3.arr[0] - p1.arr[0]);
     };
+    static cross2D = (p1, p2) => {
+        return (p1.arr[0] * p2.arr[1]) - (p2.arr[0] * p1.arr[1]);
+    };
     static convexHull(inputPoints) {
         let stack = [];
         // Sort the data set from lowest x value to highest
-        let sortedPoints = inputPoints.reduce((accumulator, cv) => {
-            return accumulator.push(cv.clone()), accumulator;
-        }, []).sort((a, b) => a.arr[0] - b.arr[0]);
-        let center = sortedPoints[0];
-        sortedPoints = [center, ...sortedPoints.splice(1, sortedPoints.length).sort((a, b) => DimensionalAnalyzer.polarSort(a, b, center))];
+        let sortedPoints = inputPoints.reduce((accumulator, value) => {
+            return accumulator.push(value.clone()), accumulator;
+        }, []);
+        sortedPoints.sort((a, b) => b.arr[1] - a.arr[1]).sort((a, b) => b.arr[0] - a.arr[0]);
+        console.log(sortedPoints);
+        let referencePoint = sortedPoints.pop();
+        console.log(referencePoint.toPrint());
+        sortedPoints.sort((a, b) => {
+            let result = Utilities.cross2D(new Point2D(a.arr[0] - referencePoint.arr[0], a.arr[1] - referencePoint.arr[1]), new Point2D(b.arr[0] - referencePoint.arr[0], b.arr[1] - referencePoint.arr[1]));
+            if (result === 0) {
+                return Utilities.pythagorean(a, referencePoint) - Utilities.pythagorean(b, referencePoint);
+            }
+            else {
+                return result > 0 ? 1 : -1;
+            }
+        });
+        sortedPoints.unshift(referencePoint);
         for (let i = 0; i < sortedPoints.length; i++) {
             let point = sortedPoints[i];
             if (stack.length > 1) {
@@ -119,5 +165,10 @@ export class Utilities {
             stack.unshift(point);
         }
         return stack;
+    }
+    static convertDimensionHigher(p, insertionIndex, insertionValue, currentDimension) {
+        let x = [...p.arr];
+        x.splice(insertionIndex, 0, insertionValue);
+        return PointFactoryMethods.getFactoryMethod(currentDimension + 1)(x);
     }
 }

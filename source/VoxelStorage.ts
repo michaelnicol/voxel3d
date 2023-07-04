@@ -8,8 +8,9 @@ import { Point3D } from "./Point3D.js";
 import { Corners3D } from "./Corners3D.js";
 import { Utilities } from "./Utilities.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
+import { cloneable } from "./cloneable.js";
 
-export class VoxelStorage<E extends Point> implements ValidObject {
+export class VoxelStorage<E extends Point> implements ValidObject, cloneable<VoxelStorage<E>> {
    /**
     * This object holds a hashmap of the dimension as the key, and the value is the extremes for that dimension. Dimensions start at zero for x.
     * 
@@ -419,7 +420,7 @@ export class VoxelStorage<E extends Point> implements ValidObject {
    /**
     * 
     * @param duplicates If duplicate coordinates should be returned in the list
-    * @returns A list of all of the tree's coordinates, where each coordinate is a instance of the pointFactoryMethod.
+    * @returns A list of all of the tree's coordinates, mutation free, where each coordinate is a instance of the pointFactoryMethod.
     */
    getCoordinateList(duplicates: boolean, instances: boolean): E[] | number[][] {
       if (this.root.getRoot() === undefined) {
@@ -485,5 +486,11 @@ export class VoxelStorage<E extends Point> implements ValidObject {
    }
    toPrint(): string {
       return "";
+   }
+   clone(): VoxelStorage<E> {
+      const newStorage = new VoxelStorage<E>(this.#maxDimensions)
+      const coordinates: E[] = this.getCoordinateList(true, true) as E[]
+      coordinates.forEach(value => newStorage.addCoordinate(value.clone() as E, true))
+      return newStorage;
    }
 }

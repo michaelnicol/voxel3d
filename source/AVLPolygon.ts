@@ -8,17 +8,20 @@ import { Utilities } from "./Utilities.js";
 import { VoxelStorage } from "./VoxelStorage.js";
 import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js"
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
+import { cloneable } from "./cloneable.js";
 
 /**
  * E is the dimension of the polygon, K is the one less.
  */
-export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> {
+export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> implements cloneable<AVLPolygon<E, K>> {
    vertices: E[] = []
    #storageMap!: DimensionalAnalyzer<E, K>;
    passes: number = -1;
    useSort: boolean = false;
    pointLowerFactoryMethod!: Function;
    pointFactoryMethod!: Function;
+   hasEdges: boolean = false
+   hasFill: boolean = false
    constructor(v: E[], maxDimensions: number) {
       super(maxDimensions)
       this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(maxDimensions)
@@ -35,12 +38,16 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> {
       v.forEach((coord: E) => this.vertices.push(coord.clone() as E))
       this.useSort = false
       this.passes = -1;
+      this.hasEdges = false
+      this.hasFill = false
       return this;
    }
    createEdges(): AVLPolygon<E, K> {
       this.internalStorage.reset()
       this.useSort = false
       this.passes = -1;
+      this.hasEdges = true;
+      this.hasFill = false
       for (let i = 0; i < this.vertices.length; i++) {
          if (i + 1 === this.vertices.length) {
             this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0) as E[], false)
@@ -51,32 +58,28 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> {
       return this;
    }
 
-   convertDimensionHigher(p: K, insertionIndex: number, insertionValue: number): E {
-      let x = [...p.arr];
-      x.splice(insertionIndex, 0, insertionValue)
-      return this.pointFactoryMethod(x)
-   }
-
    fillPolygon(passes: number, useSort: boolean): AVLPolygon<E, K> {
       if (passes > this.maxDimensions) {
          throw new Error("Passes is greater than max dimensions")
       }
+      this.hasFill = true;
       this.passes = passes;
       this.useSort = useSort;
       this.internalStorage.findRangeOutdatedRanges()
       let sortedSpans = this.internalStorage.getSortedRange();
-      let referencePoint = this.pointLowerFactoryMethod()
+      let referencePoint = this.pointLowerFactoryMethod(new Array(this.maxDimensions - 1).fill(0))
       for (let i = 0; i < passes; i++) {
-         this.#storageMap.generateStorageMap(sortedSpans[i][0], useSort, 0, referencePoint)
+         this.#storageMap.generateStorageMap(sortedSpans[i][0])
          this.#storageMap.storageMap.forEach((value, key) => {
+            value = Utilities.pythagoreanSort(value, referencePoint) as K[]
             if (useSort) {
-               let startingValue: E = this.convertDimensionHigher(value[0], this.#storageMap.keyDimension, key) as E
-               let endingValue: E = this.convertDimensionHigher(value[value.length - 1], this.#storageMap.keyDimension, key) as E
+               let startingValue: E = Utilities.convertDimensionHigher(value[0], this.#storageMap.keyDimension, key, this.maxDimensions - 1) as E
+               let endingValue: E = Utilities.convertDimensionHigher(value[value.length - 1], this.#storageMap.keyDimension, key, this.maxDimensions - 1) as E
                this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0) as E[], false)
             } else {
                for (let j = 0; j < value.length - 1; j++) {
-                  let startingValue: E = this.convertDimensionHigher(value[j], this.#storageMap.keyDimension, key) as E;
-                  let endingValue: E = this.convertDimensionHigher(value[j + 1], this.#storageMap.keyDimension, key) as E;
+                  let startingValue: E = Utilities.convertDimensionHigher(value[j], this.#storageMap.keyDimension, key, this.maxDimensions - 1) as E;
+                  let endingValue: E = Utilities.convertDimensionHigher(value[j + 1], this.#storageMap.keyDimension, key, this.maxDimensions - 1) as E;
                   this.internalStorage.addCoordinates(Utilities.bresenham(startingValue, endingValue, 0) as E[], false);
 
                }
@@ -84,5 +87,17 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> {
          })
       }
       return this;
+   }
+   clone(): AVLPolygon<E, K> {
+      let polygon = new AVLPolygon<E, K>([...this.vertices].reduce((accumulator, value) => {
+         return accumulator.push(value as E), accumulator;
+      }, [] as E[]), this.maxDimensions)
+      if (this.hasEdges) {
+         polygon.createEdges()
+      }
+      if (this.hasFill) {
+         polygon.fillPolygon(this.passes, this.useSort)
+      }
+      return polygon;
    }
 }

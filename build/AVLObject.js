@@ -49,4 +49,9 @@ export class AVLObject {
         }
         return str + "]";
     }
+    clone() {
+        const newObject = new AVLObject(this.maxDimensions);
+        newObject.internalStorage = this.internalStorage.clone();
+        return newObject;
+    }
 }

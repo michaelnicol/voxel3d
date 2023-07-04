@@ -5,8 +5,9 @@ import { Point2D } from "./Point2D.js";
 import { Point3D } from "./Point3D.js";
 import { Utilities } from "./Utilities.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
+import { cloneable } from "./cloneable.js";
 
-export class AVLObject<E extends Point> implements ValidObject {
+export class AVLObject<E extends Point> implements ValidObject, cloneable<AVLObject<E>> {
    internalStorage: VoxelStorage<E>;
    maxDimensions: number;
    constructor(maxDimensions: number) {
@@ -64,5 +65,10 @@ export class AVLObject<E extends Point> implements ValidObject {
          }
       }
       return str + "]"
+   }
+   clone(): AVLObject<E> {
+      const newObject = new AVLObject<E>(this.maxDimensions)
+      newObject.internalStorage = this.internalStorage.clone();
+      return newObject
    }
 }

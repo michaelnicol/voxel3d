@@ -419,7 +419,7 @@ export class VoxelStorage {
     /**
      *
      * @param duplicates If duplicate coordinates should be returned in the list
-     * @returns A list of all of the tree's coordinates, where each coordinate is a instance of the pointFactoryMethod.
+     * @returns A list of all of the tree's coordinates, mutation free, where each coordinate is a instance of the pointFactoryMethod.
      */
     getCoordinateList(duplicates, instances) {
         if (this.root.getRoot() === undefined) {
@@ -484,5 +484,11 @@ export class VoxelStorage {
     }
     toPrint() {
         return "";
+    }
+    clone() {
+        const newStorage = new VoxelStorage(this.#maxDimensions);
+        const coordinates = this.getCoordinateList(true, true);
+        coordinates.forEach(value => newStorage.addCoordinate(value.clone(), true));
+        return newStorage;
     }
 }

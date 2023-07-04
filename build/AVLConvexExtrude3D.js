@@ -1,11 +1,10 @@
 import { AVLObject } from "./AVLObject.js";
 import { Utilities } from "./Utilities.js";
 import { VoxelStorage } from "./VoxelStorage.js";
-import { Point2D } from "./Point2D.js";
 import { AVLPolygon } from "./AVLPolygon.js";
 import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
-class AVLConvexExtrude3D extends AVLObject {
+export class AVLConvexExtrude3D extends AVLObject {
     segmentsEdges = [];
     segmentAnalyzers = [];
     extrudeObjects = [];
@@ -52,20 +51,19 @@ class AVLConvexExtrude3D extends AVLObject {
         this.useSort = useSort;
         this.shellFillEndCaps = shellFillEndCaps;
         this.internalStorage.reset();
-        let referencePoint = new Point2D(0, 0);
         let tempPolygon = new AVLPolygon([], 2);
         for (let i = 0; i < this.segmentsEdges.length; i++) {
             let sortedSpans = this.segmentsEdges[i].getSortedRange();
             for (let j = 0; j < passes; j++) {
-                this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0], true, 1, referencePoint);
+                this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0]);
                 this.segmentAnalyzers[j].storageMap.forEach((value, key) => {
-                    tempPolygon.changeVertices(value).createEdges();
+                    tempPolygon.changeVertices(Utilities.convexHull(value)).createEdges();
                     if (shell) {
                         tempPolygon.fillPolygon(1, true);
                     }
                     var coordinatesSlice = tempPolygon.getCoordinateList(false, true);
                     var unProjectedCoordinates = coordinatesSlice.reduce((accumulator, value) => {
-                        return accumulator.push(tempPolygon.convertDimensionHigher(value, sortedSpans[j][0], key)), accumulator;
+                        return accumulator.push(Utilities.convertDimensionHigher(value, sortedSpans[j][0], key, 2)), accumulator;
                     }, []);
                     this.internalStorage.addCoordinates(unProjectedCoordinates, false);
                 });
