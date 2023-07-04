@@ -36,6 +36,7 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> i
       this.vertices = []
       this.internalStorage.reset()
       v.forEach((coord: E) => this.vertices.push(coord.clone() as E))
+      this.internalStorage.addCoordinates(this.vertices, false)
       this.useSort = false
       this.passes = -1;
       this.hasEdges = false

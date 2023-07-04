@@ -130,21 +130,22 @@ export class Utilities {
     }
     static pointOrientation = (p1, p2, p3) => {
         // returns slope from p1 to p2 minus p2 to p3
-        return (p2.arr[0] - p1.arr[0]) * (p3.arr[1] - p1.arr[1]) - (p2.arr[1] - p1.arr[1]) * (p3.arr[0] - p1.arr[0]);
+        return ((p2.arr[1] - p1.arr[1]) * (p3.arr[0] - p2.arr[0])) - ((p2.arr[0] - p1.arr[0]) * (p3.arr[1] - p1.arr[1]));
     };
     static cross2D = (p1, p2) => {
         return (p1.arr[0] * p2.arr[1]) - (p2.arr[0] * p1.arr[1]);
     };
     static convexHull(inputPoints) {
         let stack = [];
+        console.log("Input Points");
+        console.log(Utilities.printPointList(inputPoints));
+        console.log(Utilities.printPointListDesmos(inputPoints));
         // Sort the data set from lowest x value to highest
         let sortedPoints = inputPoints.reduce((accumulator, value) => {
             return accumulator.push(value.clone()), accumulator;
         }, []);
         sortedPoints.sort((a, b) => b.arr[1] - a.arr[1]).sort((a, b) => b.arr[0] - a.arr[0]);
-        console.log(sortedPoints);
         let referencePoint = sortedPoints.pop();
-        console.log(referencePoint.toPrint());
         sortedPoints.sort((a, b) => {
             let result = Utilities.cross2D(new Point2D(a.arr[0] - referencePoint.arr[0], a.arr[1] - referencePoint.arr[1]), new Point2D(b.arr[0] - referencePoint.arr[0], b.arr[1] - referencePoint.arr[1]));
             if (result === 0) {
@@ -155,6 +156,9 @@ export class Utilities {
             }
         });
         sortedPoints.unshift(referencePoint);
+        console.log("Sorted Points");
+        console.log(Utilities.printPointList(sortedPoints));
+        console.log(Utilities.printPointListDesmos(sortedPoints));
         for (let i = 0; i < sortedPoints.length; i++) {
             let point = sortedPoints[i];
             if (stack.length > 1) {
@@ -164,11 +168,34 @@ export class Utilities {
             }
             stack.unshift(point);
         }
+        console.log("Stack");
+        console.log(Utilities.printPointList(stack));
+        console.log(Utilities.printPointListDesmos(stack));
         return stack;
     }
     static convertDimensionHigher(p, insertionIndex, insertionValue, currentDimension) {
         let x = [...p.arr];
         x.splice(insertionIndex, 0, insertionValue);
         return PointFactoryMethods.getFactoryMethod(currentDimension + 1)(x);
+    }
+    static printPointList(p) {
+        let str = "[";
+        for (let i = 0; i < p.length; i++) {
+            if (i != 0) {
+                str += ",";
+            }
+            str += p[i].toPrint();
+        }
+        return str + "]";
+    }
+    static printPointListDesmos(p) {
+        let str = "";
+        for (let i = 0; i < p.length; i++) {
+            if (i != 0) {
+                str += ",";
+            }
+            str += p[i].toPrint().replace("[", "(").replace("]", ")");
+        }
+        return str + "";
     }
 }

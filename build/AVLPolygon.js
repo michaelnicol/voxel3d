@@ -28,6 +28,7 @@ export class AVLPolygon extends AVLObject {
         this.vertices = [];
         this.internalStorage.reset();
         v.forEach((coord) => this.vertices.push(coord.clone()));
+        this.internalStorage.addCoordinates(this.vertices, false);
         this.useSort = false;
         this.passes = -1;
         this.hasEdges = false;

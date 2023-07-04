@@ -49,9 +49,19 @@ export class AVLConvexExtrude3D extends AVLObject<Point3D> {
                this.segmentsEdges[i].addCoordinates(coordinates, false)
             }
          }
+         if (!this.extrudeObjects[i].hasEdges) {
+            this.extrudeObjects[i].createEdges()
+         }
+         if (!this.extrudeObjects[i + 1].hasEdges) {
+            this.extrudeObjects[i + 1].createEdges()
+         }
+         this.internalStorage.addCoordinates(this.extrudeObjects[i].getCoordinateList(false, true) as Point3D[], false)
+         this.segmentsEdges[i].addCoordinates(this.extrudeObjects[i].getCoordinateList(false, true) as Point3D[], false)
+         this.internalStorage.addCoordinates(this.extrudeObjects[i + 1].getCoordinateList(false, true) as Point3D[], false)
+         this.segmentsEdges[i].addCoordinates(this.extrudeObjects[i + 1].getCoordinateList(false, true) as Point3D[], false)
       }
    }
-   extrude(shell: boolean, passes: number, useSort: boolean, shellFillEndCaps: boolean) {
+   extrude(shell: boolean, passes: number, useSort: boolean, shellFillEndCaps: boolean, maxSlices: number) {
       this.passes = passes;
       this.shell = shell;
       this.useSort = useSort;
@@ -62,16 +72,20 @@ export class AVLConvexExtrude3D extends AVLObject<Point3D> {
          let sortedSpans = this.segmentsEdges[i].getSortedRange();
          for (let j = 0; j < passes; j++) {
             this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0])
+            let sliceAmount = 0;
             this.segmentAnalyzers[j].storageMap.forEach((value: Point2D[], key: number) => {
-               tempPolygon.changeVertices(Utilities.convexHull(value)).createEdges()
-               if (shell) {
-                  tempPolygon.fillPolygon(1, true)
+               sliceAmount += 1;
+               if (sliceAmount <= maxSlices) {
+                  tempPolygon.changeVertices(Utilities.convexHull(value)).createEdges()
+                  if (!shell) {
+                     tempPolygon.fillPolygon(1, true)
+                  }
+                  var coordinatesSlice: Point2D[] = tempPolygon.getCoordinateList(false, true) as Point2D[];
+                  var unProjectedCoordinates: Point3D[] = coordinatesSlice.reduce((accumulator, value) => {
+                     return accumulator.push(Utilities.convertDimensionHigher(value, sortedSpans[j][0], key, 2)), accumulator
+                  }, [] as Point3D[])
+                  this.internalStorage.addCoordinates(unProjectedCoordinates, false)
                }
-               var coordinatesSlice: Point2D[] = tempPolygon.getCoordinateList(false, true) as Point2D[];
-               var unProjectedCoordinates: Point3D[] = coordinatesSlice.reduce((accumulator, value) => {
-                  return accumulator.push(Utilities.convertDimensionHigher(value, sortedSpans[j][0], key, 2)), accumulator
-               }, [] as Point3D[])
-               this.internalStorage.addCoordinates(unProjectedCoordinates, false)
             })
          }
       }

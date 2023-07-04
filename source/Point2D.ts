@@ -15,7 +15,7 @@ export class Point2D implements Point {
     return this.arr.join(",");
   }
   toPrint(): string {
-    return this.arr.join(",");
+    return "["+this.arr.join(",")+"]";
   }
   dimensionCount(): number {
     return this.arr.length;

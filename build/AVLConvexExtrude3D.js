@@ -43,9 +43,19 @@ export class AVLConvexExtrude3D extends AVLObject {
                     this.segmentsEdges[i].addCoordinates(coordinates, false);
                 }
             }
+            if (!this.extrudeObjects[i].hasEdges) {
+                this.extrudeObjects[i].createEdges();
+            }
+            if (!this.extrudeObjects[i + 1].hasEdges) {
+                this.extrudeObjects[i + 1].createEdges();
+            }
+            this.internalStorage.addCoordinates(this.extrudeObjects[i].getCoordinateList(false, true), false);
+            this.segmentsEdges[i].addCoordinates(this.extrudeObjects[i].getCoordinateList(false, true), false);
+            this.internalStorage.addCoordinates(this.extrudeObjects[i + 1].getCoordinateList(false, true), false);
+            this.segmentsEdges[i].addCoordinates(this.extrudeObjects[i + 1].getCoordinateList(false, true), false);
         }
     }
-    extrude(shell, passes, useSort, shellFillEndCaps) {
+    extrude(shell, passes, useSort, shellFillEndCaps, maxSlices) {
         this.passes = passes;
         this.shell = shell;
         this.useSort = useSort;
@@ -56,16 +66,20 @@ export class AVLConvexExtrude3D extends AVLObject {
             let sortedSpans = this.segmentsEdges[i].getSortedRange();
             for (let j = 0; j < passes; j++) {
                 this.segmentAnalyzers[j].generateStorageMap(sortedSpans[j][0]);
+                let sliceAmount = 0;
                 this.segmentAnalyzers[j].storageMap.forEach((value, key) => {
-                    tempPolygon.changeVertices(Utilities.convexHull(value)).createEdges();
-                    if (shell) {
-                        tempPolygon.fillPolygon(1, true);
+                    sliceAmount += 1;
+                    if (sliceAmount <= maxSlices) {
+                        tempPolygon.changeVertices(Utilities.convexHull(value)).createEdges();
+                        if (!shell) {
+                            tempPolygon.fillPolygon(1, true);
+                        }
+                        var coordinatesSlice = tempPolygon.getCoordinateList(false, true);
+                        var unProjectedCoordinates = coordinatesSlice.reduce((accumulator, value) => {
+                            return accumulator.push(Utilities.convertDimensionHigher(value, sortedSpans[j][0], key, 2)), accumulator;
+                        }, []);
+                        this.internalStorage.addCoordinates(unProjectedCoordinates, false);
                     }
-                    var coordinatesSlice = tempPolygon.getCoordinateList(false, true);
-                    var unProjectedCoordinates = coordinatesSlice.reduce((accumulator, value) => {
-                        return accumulator.push(Utilities.convertDimensionHigher(value, sortedSpans[j][0], key, 2)), accumulator;
-                    }, []);
-                    this.internalStorage.addCoordinates(unProjectedCoordinates, false);
                 });
             }
         }
