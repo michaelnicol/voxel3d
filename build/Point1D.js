@@ -1,12 +1,7 @@
 export class Point1D {
-    dimensions = new Map;
     arr;
     constructor(x) {
-        this.dimensions.set("x", x);
         this.arr = [x];
-    }
-    getCoordinateValue(key) {
-        return this.dimensions.get(key.toLowerCase());
     }
     preHash() {
         return this.arr.join(",");

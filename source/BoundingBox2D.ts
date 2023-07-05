@@ -31,6 +31,9 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
    toPrint(): string {
        return `[${this.UL.toPrint()}, ${this.UR.toPrint()}, ${this.BL.toPrint()}, ${this.BR.toPrint()}]`
    }
+   getCoordinateList(): Point2D[] {
+      return [this.UL.clone(), this.UR.clone(), this.BL.clone(), this.BR.clone()]
+   }
    clone(): BoundingBox2D {
       return new BoundingBox2D(this.UL, this.UR, this.BL, this.BR)
    }
