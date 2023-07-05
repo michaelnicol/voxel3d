@@ -1,16 +1,9 @@
 import { Point } from "./Point.js";
 
 export class Point3D implements Point {
-  public dimensions: Map<string, number> = new Map<string, number>;
   public arr: number[];
   constructor(x: number, y: number, z: number) {
-    this.dimensions.set("x", x);
-    this.dimensions.set("y", y);
-    this.dimensions.set("z", z);
     this.arr = [x, y, z];
-  }
-  getCoordinateValue(key: string): number | undefined {
-    return this.dimensions.get(key.toLowerCase());
   }
   preHash(): string {
     return this.arr.join(",");

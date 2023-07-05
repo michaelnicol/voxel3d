@@ -100,8 +100,8 @@ export class AVLConvexExtrude3D extends AVLObject<Point3D> {
          }
       }
       if (this.extrudeObjects.length > 0 && fillEndCaps) {
-         const startCap: AVLPolygon<Point3D, Point1D> = this.extrudeObjects[0].clone()
-         const endCap: AVLPolygon<Point3D, Point1D> = this.extrudeObjects[this.extrudeObjects.length - 1].clone()
+         const startCap: AVLPolygon<Point3D, Point2D> = this.extrudeObjects[0].clone()
+         const endCap: AVLPolygon<Point3D, Point2D> = this.extrudeObjects[this.extrudeObjects.length - 1].clone()
          if (!startCap.hasFill) {
             startCap.fillPolygon(this.options[0].passes, true)
          }
