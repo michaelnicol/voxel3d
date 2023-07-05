@@ -96,6 +96,25 @@ export class Utilities {
       }
    }
 
+   static pointCenter(points: Point[]): Point2D {
+      let center = new Point2D(0, 0)
+      points.forEach(value => {
+         center.arr[0] += value.arr[0]
+         center.arr[1] += value.arr[1]
+      })
+      center.arr[0] /= points.length
+      center.arr[1] /= points.length
+      return center;
+   }
+
+   static rotatePoint(point: Point2D, center: Point2D, rad: number) {
+      const cx = center.arr[0];
+      const cy = center.arr[1];
+      const px = point.arr[0] - cx;
+      const py = point.arr[1] - cy;
+      return new Point2D(((px * Math.cos(rad)) - (py * Math.sin(rad))) + cx, ((px * Math.sin(rad)) + (py * Math.cos(rad))) + cy)
+   }
+
    static pythagoreanSort(points: Point[], referencePoint: Point): Point[] {
       return points.sort((a, b) => Utilities.pythagorean(referencePoint, a) - Utilities.pythagorean(referencePoint, b))
    }
@@ -173,62 +192,36 @@ export class Utilities {
    static minimumBoundingBox(convexHull: Point2D[]): BoundingBox2D {
       let bestArea = Number.MAX_VALUE
       if (convexHull.length === 1) {
-         return {
-            "0": convexHull[0].clone(),
-            "1": convexHull[0].clone(),
-            "2": convexHull[0].clone(),
-            "3": convexHull[0].clone()
-         } as BoundingBox2D
+         return new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0])
       }
-      let bestBox = {
-         "0": new Point2D(0, 0),
-         "1": new Point2D(0, 0),
-         "2": new Point2D(0, 0),
-         "3": new Point2D(0, 0),
-      } as BoundingBox2D
-      let center = new Point2D(0, 0)
-      convexHull.forEach(value => {
-         center.arr[0] += value.arr[0]
-         center.arr[1] += value.arr[1]
-      })
-      center.arr[0] /= convexHull.length
-      center.arr[1] /= convexHull.length
+      let bestBox = new BoundingBox2D(new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0))
+      let center = Utilities.pointCenter(convexHull)
       let cx = center.arr[0]
       let cy = center.arr[1]
       for (let i = 0; i < convexHull.length - 1; i++) {
          let currentPoint: Point2D = convexHull[i]
          let nextPoint: Point2D = convexHull[i + 1]
          const angle = Math.atan2((nextPoint.arr[1] - currentPoint.arr[1]), (nextPoint.arr[0] - currentPoint.arr[0]))
-         let currentBox = {
-            "0": new Point2D(Number.MAX_VALUE, Number.MAX_VALUE),
-            "1": new Point2D(-Number.MAX_VALUE, Number.MAX_VALUE),
-            "2": new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE),
-            "3": new Point2D(-Number.MAX_VALUE, -Number.MAX_VALUE),
-         } as BoundingBox2D
+         let currentBox = new BoundingBox2D(new Point2D(Number.MAX_VALUE, Number.MAX_VALUE), new Point2D(-Number.MAX_VALUE, Number.MAX_VALUE), new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE), new Point2D(-Number.MAX_VALUE, -Number.MAX_VALUE))
          convexHull.reduce((accumulator, current) => {
-            let clonedPoint = current.clone();
-            let px = clonedPoint.arr[0] - cx;
-            let py = clonedPoint.arr[1] - cy;
-            // 2D rotation matrix application
-            clonedPoint.arr[0] = ((px * Math.cos(angle)) - (py * Math.sin(angle))) + cx;
-            clonedPoint.arr[1] = ((px * Math.sin(angle)) + (py * Math.cos(angle))) + cy;
-            px = clonedPoint.arr[0];
-            py = clonedPoint.arr[1];
-            if (px <= currentBox["0"].arr[0] && py <= currentBox["0"].arr[1]) {
-               currentBox["0"] = new Point2D(current.arr[0], current.arr[1]);
+            let rotatedPoint = Utilities.rotatePoint(current, center, angle)
+            const px = rotatedPoint.arr[0]
+            const py = rotatedPoint.arr[1]
+            if (px <= currentBox.BL.arr[0] && py <= currentBox.BL.arr[1]) {
+               currentBox.BL = new Point2D(current.arr[0], current.arr[1]);
             }
-            if (px >= currentBox["1"].arr[0] && py <= currentBox["1"].arr[1]) {
-               currentBox["1"] = new Point2D(current.arr[0], current.arr[1]);
+            if (px >= currentBox.BR.arr[0] && py <= currentBox.BR.arr[1]) {
+               currentBox.BR = new Point2D(current.arr[0], current.arr[1]);
             }
-            if (px <= currentBox["2"].arr[0] && py >= currentBox["2"].arr[1]) {
-               currentBox["2"] = new Point2D(current.arr[0], current.arr[1]);
+            if (px <= currentBox.UL.arr[0] && py >= currentBox.UL.arr[1]) {
+               currentBox.UL = new Point2D(current.arr[0], current.arr[1]);
             }
-            if (px >= currentBox["3"].arr[0] && py >= currentBox["3"].arr[1]) {
-               currentBox["3"] = new Point2D(current.arr[0], current.arr[1]);
+            if (px >= currentBox.UR.arr[0] && py >= currentBox.UR.arr[1]) {
+               currentBox.UR = new Point2D(current.arr[0], current.arr[1]);
             }
-            return accumulator.push(clonedPoint), accumulator;
+            return accumulator.push(rotatedPoint), accumulator;
          }, [] as Point2D[])
-         let currentArea = (currentBox["1"].arr[0] - currentBox["0"].arr[0]) * (currentBox["1"].arr[1] - currentBox["0"].arr[1])
+         let currentArea = (currentBox.BR.arr[0] - currentBox.BL.arr[0]) * (currentBox.BR.arr[1] - currentBox.BL.arr[1])
          if (currentArea < bestArea) {
             bestBox = currentBox
             bestArea = currentArea

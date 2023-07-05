@@ -1,7 +1,6 @@
 import { VoxelStorageNode } from "./VoxelStorageNode.js";
 import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
-import { Point3D } from "./Point3D.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
 export class VoxelStorage {
     /**
@@ -435,24 +434,24 @@ export class VoxelStorage {
      *
      * @throws Error if the maxDimensions is less than 3.
      */
-    getBoundingBox3D() {
-        if (this.#maxDimensions < 3) {
-            throw new Error("Storage tree depth is less than 3: " + this.#maxDimensions);
-        }
-        let xRange = this.#dimensionRange.get(0);
-        let yRange = this.#dimensionRange.get(1);
-        let zRange = this.#dimensionRange.get(2);
-        return {
-            "0": new Point3D(xRange[0], yRange[0], zRange[0]),
-            "1": new Point3D(xRange[2], yRange[0], zRange[0]),
-            "2": new Point3D(xRange[0], yRange[2], zRange[0]),
-            "3": new Point3D(xRange[2], yRange[2], zRange[0]),
-            "4": new Point3D(xRange[0], yRange[0], zRange[2]),
-            "5": new Point3D(xRange[2], yRange[0], zRange[2]),
-            "6": new Point3D(xRange[0], yRange[2], zRange[2]),
-            "7": new Point3D(xRange[2], yRange[2], zRange[2])
-        };
-    }
+    // getBoundingBox3D(): BoundingBox3D {
+    //    if (this.#maxDimensions < 3) {
+    //       throw new Error("Storage tree depth is less than 3: " + this.#maxDimensions);
+    //    }
+    //    let xRange = this.#dimensionRange.get(0) as number[];
+    //    let yRange = this.#dimensionRange.get(1) as number[];
+    //    let zRange = this.#dimensionRange.get(2) as number[];
+    //    return {
+    //       "0": new Point3D(xRange[0], yRange[0], zRange[0]),
+    //       "1": new Point3D(xRange[2], yRange[0], zRange[0]),
+    //       "2": new Point3D(xRange[0], yRange[2], zRange[0]),
+    //       "3": new Point3D(xRange[2], yRange[2], zRange[0]),
+    //       "4": new Point3D(xRange[0], yRange[0], zRange[2]),
+    //       "5": new Point3D(xRange[2], yRange[0], zRange[2]),
+    //       "6": new Point3D(xRange[0], yRange[2], zRange[2]),
+    //       "7": new Point3D(xRange[2], yRange[2], zRange[2])
+    //    }
+    // }
     getRanges() {
         let mapToReturn = new Map();
         for (let [key, value] of this.#dimensionRange) {
