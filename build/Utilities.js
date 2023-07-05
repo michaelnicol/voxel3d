@@ -137,9 +137,6 @@ export class Utilities {
     };
     static convexHull(inputPoints) {
         let stack = [];
-        console.log("Input Points");
-        console.log(Utilities.printPointList(inputPoints));
-        console.log(Utilities.printPointListDesmos(inputPoints));
         // Sort the data set from lowest x value to highest
         let sortedPoints = inputPoints.reduce((accumulator, value) => {
             return accumulator.push(value.clone()), accumulator;
@@ -156,9 +153,6 @@ export class Utilities {
             }
         });
         sortedPoints.unshift(referencePoint);
-        console.log("Sorted Points");
-        console.log(Utilities.printPointList(sortedPoints));
-        console.log(Utilities.printPointListDesmos(sortedPoints));
         for (let i = 0; i < sortedPoints.length; i++) {
             let point = sortedPoints[i];
             if (stack.length > 1) {
@@ -168,10 +162,78 @@ export class Utilities {
             }
             stack.unshift(point);
         }
-        console.log("Stack");
-        console.log(Utilities.printPointList(stack));
-        console.log(Utilities.printPointListDesmos(stack));
         return stack;
+    }
+    /**
+     *
+     *
+     * @param convexHull
+     */
+    static minimumBoundingBox(convexHull) {
+        let bestArea = Number.MAX_VALUE;
+        if (convexHull.length === 1) {
+            return {
+                "0": convexHull[0].clone(),
+                "1": convexHull[0].clone(),
+                "2": convexHull[0].clone(),
+                "3": convexHull[0].clone()
+            };
+        }
+        let bestBox = {
+            "0": new Point2D(0, 0),
+            "1": new Point2D(0, 0),
+            "2": new Point2D(0, 0),
+            "3": new Point2D(0, 0),
+        };
+        let center = new Point2D(0, 0);
+        convexHull.forEach(value => {
+            center.arr[0] += value.arr[0];
+            center.arr[1] += value.arr[1];
+        });
+        center.arr[0] /= convexHull.length;
+        center.arr[1] /= convexHull.length;
+        let cx = center.arr[0];
+        let cy = center.arr[1];
+        for (let i = 0; i < convexHull.length - 1; i++) {
+            let currentPoint = convexHull[i];
+            let nextPoint = convexHull[i + 1];
+            const angle = Math.atan2((nextPoint.arr[1] - currentPoint.arr[1]), (nextPoint.arr[0] - currentPoint.arr[0]));
+            let currentBox = {
+                "0": new Point2D(Number.MAX_VALUE, Number.MAX_VALUE),
+                "1": new Point2D(-Number.MAX_VALUE, Number.MAX_VALUE),
+                "2": new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE),
+                "3": new Point2D(-Number.MAX_VALUE, -Number.MAX_VALUE),
+            };
+            convexHull.reduce((accumulator, current) => {
+                let clonedPoint = current.clone();
+                let px = clonedPoint.arr[0] - cx;
+                let py = clonedPoint.arr[1] - cy;
+                // 2D rotation matrix application
+                clonedPoint.arr[0] = ((px * Math.cos(angle)) - (py * Math.sin(angle))) + cx;
+                clonedPoint.arr[1] = ((px * Math.sin(angle)) + (py * Math.cos(angle))) + cy;
+                px = clonedPoint.arr[0];
+                py = clonedPoint.arr[1];
+                if (px <= currentBox["0"].arr[0] && py <= currentBox["0"].arr[1]) {
+                    currentBox["0"] = new Point2D(current.arr[0], current.arr[1]);
+                }
+                if (px >= currentBox["1"].arr[0] && py <= currentBox["1"].arr[1]) {
+                    currentBox["1"] = new Point2D(current.arr[0], current.arr[1]);
+                }
+                if (px <= currentBox["2"].arr[0] && py >= currentBox["2"].arr[1]) {
+                    currentBox["2"] = new Point2D(current.arr[0], current.arr[1]);
+                }
+                if (px >= currentBox["3"].arr[0] && py >= currentBox["3"].arr[1]) {
+                    currentBox["3"] = new Point2D(current.arr[0], current.arr[1]);
+                }
+                return accumulator.push(clonedPoint), accumulator;
+            }, []);
+            let currentArea = (currentBox["1"].arr[0] - currentBox["0"].arr[0]) * (currentBox["1"].arr[1] - currentBox["0"].arr[1]);
+            if (currentArea < bestArea) {
+                bestBox = currentBox;
+                bestArea = currentArea;
+            }
+        }
+        return bestBox;
     }
     static convertDimensionHigher(p, insertionIndex, insertionValue, currentDimension) {
         let x = [...p.arr];

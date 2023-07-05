@@ -1,7 +1,7 @@
 import { Point3D } from "./Point3D.js";
 import { ValidObject } from "./ValidObject.js";
 
-export type Corners3D = {
+export type BoundingBox3D = {
    /**
     * X-Low, Y-Low, Z-Low
     */

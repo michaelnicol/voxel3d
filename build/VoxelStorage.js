@@ -431,7 +431,7 @@ export class VoxelStorage {
     }
     /**
      *
-     * @returns An instance of Corners3D which is the coordinates of a 3D rectangle encompassing the coordinates stored in the tree. This can still be calculated if the dimensions are greater than 3. For a 4D tree, this is the volume of space this object exists in across all points in time.
+     * @returns An instance of BoundingBox3D which is the coordinates of a 3D rectangle encompassing the coordinates stored in the tree. This can still be calculated if the dimensions are greater than 3. For a 4D tree, this is the volume of space this object exists in across all points in time.
      *
      * @throws Error if the maxDimensions is less than 3.
      */

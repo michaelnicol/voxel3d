@@ -5,7 +5,7 @@ import { Point } from "./Point.js";
 import { AVLTree } from "./AVLTree.js";
 import { VoxelStorageComparator } from "./VoxelStorageComparator.js";
 import { Point3D } from "./Point3D.js";
-import { Corners3D } from "./Corners3D.js";
+import { BoundingBox3D } from "./BoundingBox3D.js";
 import { Utilities } from "./Utilities.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
 import { cloneable } from "./cloneable.js";
@@ -432,11 +432,11 @@ export class VoxelStorage<E extends Point> implements ValidObject, cloneable<Vox
    }
    /**
     * 
-    * @returns An instance of Corners3D which is the coordinates of a 3D rectangle encompassing the coordinates stored in the tree. This can still be calculated if the dimensions are greater than 3. For a 4D tree, this is the volume of space this object exists in across all points in time.
+    * @returns An instance of BoundingBox3D which is the coordinates of a 3D rectangle encompassing the coordinates stored in the tree. This can still be calculated if the dimensions are greater than 3. For a 4D tree, this is the volume of space this object exists in across all points in time.
     * 
     * @throws Error if the maxDimensions is less than 3.
     */
-   getBoundingBox3D(): Corners3D {
+   getBoundingBox3D(): BoundingBox3D {
       if (this.#maxDimensions < 3) {
          throw new Error("Storage tree depth is less than 3: " + this.#maxDimensions);
       }
