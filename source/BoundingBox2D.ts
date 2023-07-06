@@ -21,12 +21,16 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
     */
    UR!: Point2D
    center!: Point2D
+   xRange!: number
+   yRange!: number
    constructor(UL: Point2D, UR: Point2D, BL: Point2D, BR: Point2D) {
       this.UL = UL.clone();
       this.UR = UR.clone();
       this.BL = BL.clone();
       this.BR = BR.clone();
       this.center = Utilities.pointCenter([this.BL, this.BR, this.UL, this.UR])
+      this.xRange = Math.abs(UR.arr[0] - UL.arr[0])
+      this.yRange = Math.abs(UL.arr[0] - BL.arr[0])
    }
    toPrint(): string {
        return `[${this.UL.toPrint()}, ${this.UR.toPrint()}, ${this.BL.toPrint()}, ${this.BR.toPrint()}]`
