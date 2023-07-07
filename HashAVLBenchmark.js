@@ -32,7 +32,7 @@ for (let i = 0; i < amounts.length; i++) {
 
    let d = ((new Date()).getTime() - start);
 
-   console.log("Hash | " + (d) + (" ".repeat(8-(""+d).length)) + " | " + amount)
+   // console.log("Hash | " + (d) + (" ".repeat(8-(""+d).length)) + " | " + amount)
    hash.push(d);
 
    let base = new VoxelStorage(3, new Point3D().factoryMethod);
@@ -43,11 +43,11 @@ for (let i = 0; i < amounts.length; i++) {
       base.addCoordinate(new Point3D(i, i, i), true)
    }
    d = ((new Date()).getTime() - start);
-   console.log("AVL  | " + (d) + (" ".repeat(8-(""+d).length)) + " | " + amount)
+   // console.log("AVL  | " + (d) + (" ".repeat(8-(""+d).length)) + " | " + amount)
    voxel.push(d);
 
 }
 
-console.log(JSON.stringify(amounts)+"\n\n")
-console.log(JSON.stringify(hash)+"\n\n")
-console.log(JSON.stringify(voxel)+"\n\n")
+// console.log(JSON.stringify(amounts)+"\n\n")
+// console.log(JSON.stringify(hash)+"\n\n")
+// console.log(JSON.stringify(voxel)+"\n\n")

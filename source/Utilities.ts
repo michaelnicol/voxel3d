@@ -185,8 +185,8 @@ export class Utilities {
       return stack;
    }
    static minimumBoundingBox(convexHull: Point2D[]): BoundingBox2D {
-      console.log("Convex Hull")
-      console.log(this.printPointList(convexHull))
+      // console.log("Convex Hull")
+      // console.log(this.printPointList(convexHull))
       let bestArea = Number.MAX_VALUE
       if (convexHull.length === 1) {
          return new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0])
@@ -211,7 +211,7 @@ export class Utilities {
             bestBox = currentBox
             bestArea = currentBox.area
          }
-         console.log("--------------------")
+         // console.log("--------------------")
       }
       return bestBox;
    }
