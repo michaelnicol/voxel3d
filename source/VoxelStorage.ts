@@ -276,7 +276,7 @@ export class VoxelStorage<E extends Point> implements ValidObject, cloneable<Vox
     * @returns 
     */
    removeCoordinateList(coordinates: E[], calculateRange: boolean): number[] {
-      let rangeList = []
+      let rangeList: number[] = []
       for (let coord of coordinates) {
          let ranges = this.removeCoordinate(coord, false);
          for (let v of ranges) {
