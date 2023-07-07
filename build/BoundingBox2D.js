@@ -59,9 +59,6 @@ export class BoundingBox2D {
         this.center = Utilities.pointCenter([this.BL, this.BR, this.UL, this.UR]);
         this.xRange = Math.abs(this.UR.arr[0] - this.UL.arr[0]);
         this.yRange = Math.abs(this.UL.arr[1] - this.BL.arr[1]);
-        console.log("Area Calculation");
-        console.log(Utilities.pythagorean(this.UL, this.UR));
-        console.log(Utilities.pythagorean(this.BL, this.BR));
         this.area = Utilities.pythagorean(this.UL, this.UR) * Utilities.pythagorean(this.BL, this.BR);
     }
     toPrint() {
