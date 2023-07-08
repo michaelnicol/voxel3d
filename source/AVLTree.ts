@@ -46,7 +46,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
   /**
    * Time complexity: O(Log2(n)) where n is the number of nodes.
    * 
-   * @returns Node containg the highest value in the tree.
+   * @returns Node contains the highest value in the tree.
    */
   public getHighestValue(): AVLTreeNode<E> | undefined {
     if (this.root === undefined) {

@@ -127,11 +127,6 @@ export class Utilities {
             return result === 0 ? Utilities.pythagorean(a, assertedRF) - Utilities.pythagorean(b, assertedRF) : result;
         });
     }
-    /**
-     * Polar sorts a given list of points. If any amount of points share the same polar angle, the furthest polar point is kept.
-     *
-     * @param points
-     */
     static polarSortAtan2(points, removeCollinear, referencePoint) {
         let sortedPoints = points.reduce((accumulator, cv) => {
             return accumulator.push(cv.clone()), accumulator;
@@ -181,10 +176,29 @@ export class Utilities {
         }
         return stack;
     }
+    /**
+     * Finds the minimum bounding box for a convex hull. A convex hull is required because the rotation algorithm is based upon angles of convex line segments and the axes.
+     *
+     * The return structure includes the angle the convex hull (and the points the hull is based upon) must be rotated around the center to become the minimum bounding box.
+     *
+     * The angle is based upon JS atan2, so the angle is between each convex line segment and the positive x-axis (counter clockwise rotation)
+     *
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2 | JavaScript atan2 Method}
+     * @param convexHull Ordered convex hull points
+     * @returns Format of MinimumRotationScheme
+     */
     static minimumBoundingBox(convexHull) {
         let bestArea = Number.MAX_VALUE;
+        let bestAngle = 0;
+        let bestHull = [];
         if (convexHull.length === 1) {
-            return new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0]);
+            return {
+                "rotationAngle": 0,
+                "rotationCenter": convexHull[0].clone(),
+                "originalConvexHull": convexHull,
+                "rotatedConvexHull": [convexHull[0].clone()],
+                "rotatedBoundingBox": new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0])
+            };
         }
         let bestBox = new BoundingBox2D(new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0));
         let center = Utilities.pointCenter(convexHull);
@@ -192,17 +206,26 @@ export class Utilities {
             let currentPoint = convexHull[i];
             let nextPoint = convexHull[i + 1];
             const angle = Math.atan2((nextPoint.arr[1] - currentPoint.arr[1]), (nextPoint.arr[0] - currentPoint.arr[0]));
+            // Create an inverted bounding box for default values
             let currentBox = new BoundingBox2D(new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE), new Point2D(-Number.MAX_VALUE, -Number.MAX_VALUE), new Point2D(Number.MAX_VALUE, Number.MAX_VALUE), new Point2D(-Number.MAX_VALUE, Number.MAX_VALUE));
-            convexHull.reduce((accumulator, current) => {
+            let newBoxCoordinates = convexHull.reduce((accumulator, current) => {
                 return accumulator.push(Utilities.rotatePoint(current, center, angle)), accumulator;
             }, []);
-            currentBox.createCorners(convexHull);
+            currentBox.createCorners(newBoxCoordinates);
             if (currentBox.area < bestArea) {
                 bestBox = currentBox;
                 bestArea = currentBox.area;
+                bestAngle = angle;
+                bestHull = newBoxCoordinates;
             }
         }
-        return bestBox;
+        return {
+            "rotationAngle": bestAngle,
+            "rotationCenter": center,
+            "originalConvexHull": convexHull,
+            "rotatedConvexHull": bestHull,
+            "rotatedBoundingBox": bestBox
+        };
     }
     static convertDimensionHigher(p, insertionIndex, insertionValue, currentDimension) {
         let x = [...p.arr];
@@ -214,7 +237,7 @@ export class Utilities {
      *
      * Output Format: [[x1, y1], [x2, y2], [x3, y3], ...]
      *
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse}
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse | JavaScript JSON parse Method}
      * @param p List of Points
      * @returns Printable Array String
      */
@@ -229,7 +252,7 @@ export class Utilities {
         return str + "]";
     }
     /**
-     * Creates a string of a given list of points that can be copied into the desmos.com 2D graphing software.
+     * Creates a string of a given list of points that can be copied into the Desmos 2D graphing software.
      *
      * Output Format: (x1, y1), (x2, y2), (x3, y3), ...
      *

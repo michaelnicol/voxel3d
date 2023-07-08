@@ -43,7 +43,7 @@ export class AVLTree {
     /**
      * Time complexity: O(Log2(n)) where n is the number of nodes.
      *
-     * @returns Node containg the highest value in the tree.
+     * @returns Node contains the highest value in the tree.
      */
     getHighestValue() {
         if (this.root === undefined) {
