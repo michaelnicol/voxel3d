@@ -43,10 +43,10 @@ export class BoundingBox2D {
                 minX = x;
             }
             if (y > maxY) {
-                maxY = y;
+                maxX = y;
             }
             if (y < minY) {
-                minY = y;
+                minX = y;
             }
         }
         this.BL = new Point2D(minX, minY);

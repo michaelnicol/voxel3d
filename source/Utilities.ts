@@ -37,7 +37,7 @@ export class Utilities {
          } else if (returnType === 1) {
             voxelStorage.addCoordinate(p1, false);
             return voxelStorage;
-         } else {
+         } else if (returnType === 2) {
             hashStorage.addCoordinate(p1, false);
             return hashStorage;
          }
@@ -120,16 +120,24 @@ export class Utilities {
    }
 
    static #radToDegConstant = 180 / Math.PI
+
+   static polarSortCross(points: Point2D[], referencePoint: Point | undefined): Point2D[] {
+      const assertedRF: Point = referencePoint == undefined ? new Point2D(0,0) : referencePoint
+      return points.sort((a: Point, b: Point) => {
+         let result = Utilities.cross2D(new Point2D(a.arr[0] - assertedRF.arr[0], a.arr[1] - assertedRF.arr[1]), new Point2D(b.arr[0] - assertedRF.arr[0], b.arr[1] - assertedRF.arr[1]));
+         return result === 0 ? Utilities.pythagorean(a, assertedRF) - Utilities.pythagorean(b, assertedRF) : result;
+      });
+   }
    /**
     * Polar sorts a given list of points. If any amount of points share the same polar angle, the furthest polar point is kept.
     * 
     * @param points 
     */
-   static polarSort(points: Point2D[], removeCollinear: boolean, referencePoint: Point | undefined): Point2D[] {
+   static polarSortAtan2(points: Point2D[], removeCollinear: boolean, referencePoint: Point | undefined): Point2D[] {
       let sortedPoints: Point2D[] = points.reduce((accumulator: Point2D[], cv: Point2D) => {
          return accumulator.push(cv.clone()), accumulator
-      }, []).sort((a: Point2D, b: Point2D) => a.arr[1] - b.arr[1]).sort((a: Point2D, b: Point2D) => a.arr[0] - b.arr[0])
-      const assertedRF: Point = referencePoint == undefined ? sortedPoints[0] : referencePoint
+      }, [])
+      const assertedRF: Point = referencePoint == undefined ? new Point2D(0,0) : referencePoint
       const polarMap: Map<number, Point[]> = new Map<number, Point[]>()
       sortedPoints.forEach((value) => {
          let angle = Math.atan2((value.arr[1] - assertedRF.arr[1]), (value.arr[0] - assertedRF.arr[0])) * Utilities.#radToDegConstant;
@@ -147,10 +155,10 @@ export class Utilities {
       return returnPoints;
    }
 
-   static pointOrientation = (p1: Point2D, p2: Point2D, p3: Point2D): number => {
+   static pointOrientation = (p1: Point2D, p2: Point2D, p3: Point2D) => {
       // returns slope from p1 to p2 minus p2 to p3
-      return ((p2.arr[1] - p1.arr[1]) * (p3.arr[0] - p2.arr[0])) - ((p2.arr[0] - p1.arr[0]) * (p3.arr[1] - p1.arr[1]));
-   }
+      return ((p2.arr[0] - p1.arr[0]) * (p3.arr[1] - p1.arr[1])) - ((p2.arr[1] - p1.arr[1]) * (p3.arr[0] - p1.arr[0]));
+   };
 
    static cross2D = (p1: Point2D, p2: Point2D): number => {
       return (p1.arr[0] * p2.arr[1]) - (p2.arr[0] * p1.arr[1])
@@ -159,24 +167,17 @@ export class Utilities {
    static convexHull(inputPoints: Point2D[]): Point2D[] {
       let stack: Point2D[] = [];
       // Sort the data set from lowest x value to highest
-      let sortedPoints = inputPoints.reduce((accumulator, value) => {
-         return accumulator.push(value.clone()), accumulator
-      }, [] as Point2D[])
-      sortedPoints.sort((a, b) => b.arr[1] - a.arr[1]).sort((a, b) => b.arr[0] - a.arr[0])
-      let referencePoint: Point2D = sortedPoints.pop() as Point2D
-      sortedPoints.sort((a, b) => {
-         let result = Utilities.cross2D(new Point2D(a.arr[0] - referencePoint.arr[0], a.arr[1] - referencePoint.arr[1]), new Point2D(b.arr[0] - referencePoint.arr[0], b.arr[1] - referencePoint.arr[1]))
-         if (result === 0) {
-            return Utilities.pythagorean(a, referencePoint) - Utilities.pythagorean(b, referencePoint)
-         } else {
-            return result > 0 ? 1 : -1
-         }
-      })
-      sortedPoints.unshift(referencePoint)
+      let sortedPoints = inputPoints.reduce((accumulator: Point[], value: Point) => {
+         return accumulator.push(value.clone()), accumulator;
+      }, [] as Point2D[]);
+      sortedPoints.sort((a: Point, b: Point) => a.arr[0] - b.arr[0]).sort((a: Point, b: Point) => a.arr[1] - b.arr[1]);
+      let referencePoint = sortedPoints[0]
+      Utilities.polarSortCross(sortedPoints, referencePoint)
+      stack = []
       for (let i = 0; i < sortedPoints.length; i++) {
-         let point: Point2D = sortedPoints[i];
+         let point = sortedPoints[i];
          if (stack.length > 1) {
-            while (stack.length > 1 && Utilities.pointOrientation(stack[1], stack[0], point) <= 0) {
+            while (stack.length > 1 && Utilities.pointOrientation(stack[1], stack[0], point) >= 0) {
                stack.shift();
             }
          }
@@ -185,8 +186,6 @@ export class Utilities {
       return stack;
    }
    static minimumBoundingBox(convexHull: Point2D[]): BoundingBox2D {
-      // console.log("Convex Hull")
-      // console.log(this.printPointList(convexHull))
       let bestArea = Number.MAX_VALUE
       if (convexHull.length === 1) {
          return new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0])
@@ -198,7 +197,7 @@ export class Utilities {
          let nextPoint: Point2D = convexHull[i + 1]
          const angle = Math.atan2((nextPoint.arr[1] - currentPoint.arr[1]), (nextPoint.arr[0] - currentPoint.arr[0]))
          let currentBox = new BoundingBox2D(
-            new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE), 
+            new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE),
             new Point2D(-Number.MAX_VALUE, -Number.MAX_VALUE),
             new Point2D(Number.MAX_VALUE, Number.MAX_VALUE),
             new Point2D(-Number.MAX_VALUE, Number.MAX_VALUE)
@@ -211,7 +210,6 @@ export class Utilities {
             bestBox = currentBox
             bestArea = currentBox.area
          }
-         // console.log("--------------------")
       }
       return bestBox;
    }
@@ -220,6 +218,15 @@ export class Utilities {
       x.splice(insertionIndex, 0, insertionValue)
       return PointFactoryMethods.getFactoryMethod(currentDimension + 1)(x)
    }
+   /**
+    * Creates a string of a given list of points that can be parsed into a new number[][] array or printed.
+    * 
+    * Output Format: [[x1, y1], [x2, y2], [x3, y3], ...] 
+    * 
+    * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse}
+    * @param p List of Points
+    * @returns Printable Array String
+    */
    static printPointList(p: Point[]) {
       let str = "["
       for (let i = 0; i < p.length; i++) {
@@ -230,6 +237,15 @@ export class Utilities {
       }
       return str + "]"
    }
+   /**
+    * Creates a string of a given list of points that can be copied into the desmos.com 2D graphing software.
+    * 
+    * Output Format: (x1, y1), (x2, y2), (x3, y3), ...
+    * 
+    * {@link https://desmos.com/calculator}
+    * @param p List of Points
+    * @returns Printable Desmos String
+    */
    static printPointListDesmos(p: Point[]) {
       let str = ""
       for (let i = 0; i < p.length; i++) {
