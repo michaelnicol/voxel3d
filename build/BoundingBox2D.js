@@ -33,26 +33,34 @@ export class BoundingBox2D {
     }
     getUL() {
         let ul = this.#UL.clone();
-        ul.arr[0] -= (this.gap + this.translation.arr[0]);
-        ul.arr[1] += (this.gap + this.translation.arr[1]);
+        ul.arr[0] -= (this.gap);
+        ul.arr[1] += (this.gap);
+        ul.arr[0] += this.translation.arr[0];
+        ul.arr[1] += this.translation.arr[1];
         return ul;
     }
     getUR() {
         let ur = this.#UR.clone();
-        ur.arr[0] += (this.gap + this.translation.arr[0]);
-        ur.arr[1] += (this.gap + this.translation.arr[1]);
+        ur.arr[0] += (this.gap);
+        ur.arr[1] += (this.gap);
+        ur.arr[0] += this.translation.arr[0];
+        ur.arr[1] += this.translation.arr[1];
         return ur;
     }
     getBL() {
         let bl = this.#BL.clone();
-        bl.arr[0] -= (this.gap + this.translation.arr[0]);
-        bl.arr[1] -= (this.gap + this.translation.arr[1]);
+        bl.arr[0] -= (this.gap);
+        bl.arr[1] -= (this.gap);
+        bl.arr[0] += this.translation.arr[0];
+        bl.arr[1] += this.translation.arr[1];
         return bl;
     }
     getBR() {
         let br = this.#BR.clone();
-        br.arr[0] += (this.gap + this.translation.arr[0]);
-        br.arr[1] -= (this.gap + this.translation.arr[1]);
+        br.arr[0] += (this.gap);
+        br.arr[1] -= (this.gap);
+        br.arr[0] += this.translation.arr[0];
+        br.arr[1] += this.translation.arr[1];
         return br;
     }
     setUL(ul) {
