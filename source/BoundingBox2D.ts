@@ -7,31 +7,69 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
    /**
     * X-Low, Y-Low
     */
-   BL!: Point2D;
+   #BL!: Point2D;
    /**
     * X-High, Y-Low
     */
-   BR!: Point2D
+   #BR!: Point2D
    /**
     * X-Low, Y-High
     */
-   UL!: Point2D
+   #UL!: Point2D
    /**
     * X-High, Y-High
     */
-   UR!: Point2D
+   #UR!: Point2D
    center!: Point2D
    xRange!: number
    yRange!: number
    area!: number
-   constructor(UL: Point2D, UR: Point2D, BL: Point2D, BR: Point2D) {
-      this.UL = UL.clone();
-      this.UR = UR.clone();
-      this.BL = BL.clone();
-      this.BR = BR.clone();
+   gap!: number
+   constructor(UL: Point2D, UR: Point2D, BL: Point2D, BR: Point2D, gap: number) {
+      this.#UL = UL.clone();
+      this.#UR = UR.clone();
+      this.#BL = BL.clone();
+      this.#BR = BR.clone();
+      this.gap = gap;
       this.cornersHaveChanged()
    }
-   createCorners(points: Point2D[]) {
+   getUL(): Point2D {
+      let ul = this.#UL.clone()
+      ul.arr[0] -= this.gap;
+      ul.arr[1] += this.gap;
+      return ul
+   }
+   getUR(): Point2D {
+      let ur = this.#UR.clone()
+      ur.arr[0] += this.gap;
+      ur.arr[1] += this.gap;
+      return ur
+   }
+   getBL(): Point2D {
+      let bl = this.#BL.clone()
+      bl.arr[0] -= this.gap;
+      bl.arr[1] -= this.gap;
+      return bl
+   }
+   getBR(): Point2D {
+      let br = this.#BR.clone()
+      br.arr[0] += this.gap;
+      br.arr[1] -= this.gap;
+      return br
+   }
+   setUL(ul: Point2D) {
+      this.#UL = ul.clone()
+   }
+   setUR(ur: Point2D) {
+      this.#UR = ur.clone()
+   }
+   setBL(bl: Point2D) {
+      this.#BL = bl.clone()
+   }
+   setBR(br: Point2D) {
+      this.#BR = br.clone()
+   }
+   static createFromExtremes(points: Point2D[], gap: number): BoundingBox2D {
       let maxY: number = -Number.MAX_VALUE
       let minY: number = Number.MAX_VALUE
       let maxX: number = -Number.MAX_VALUE
@@ -52,29 +90,26 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
             minY = y;
          }
       }
-      this.BL = new Point2D(minX, minY)
-      this.BR = new Point2D(maxX, minY)
-      this.UL = new Point2D(minX, maxY)
-      this.UR = new Point2D(maxX, maxY)
-      this.cornersHaveChanged()
+      return new BoundingBox2D(new Point2D(minX, maxY), new Point2D(maxX, maxY), new Point2D(minX, minY), new Point2D(maxX, minY), gap)
    }
    cornersHaveChanged() {
-      this.center = Utilities.pointCenter([this.BL, this.BR, this.UL, this.UR])
-      this.xRange = Math.abs(this.UR.arr[0] - this.UL.arr[0])
-      this.yRange = Math.abs(this.UL.arr[1] - this.BL.arr[1])
-      this.area = Utilities.pythagorean(this.UL, this.UR) * Utilities.pythagorean(this.BL, this.BR)
+      // Center does not need to account for the gap
+      this.center = Utilities.pointCenter([this.#BL, this.#BR, this.#UL, this.#UR])
+      this.xRange = Math.abs(this.getUR().arr[0] - this.getUL().arr[0])
+      this.yRange = Math.abs(this.getUL().arr[1] - this.getBL().arr[1])
+      this.area = Utilities.pythagorean(this.getUL(), this.getUR()) * Utilities.pythagorean(this.getBL(), this.getBR())
    }
    toPrint(): string {
-      return `[${this.UL.toPrint()}, ${this.UR.toPrint()}, ${this.BL.toPrint()}, ${this.BR.toPrint()}]`
+      return `[${this.getUL().toPrint()}, ${this.getUR().toPrint()}, ${this.getBL().toPrint()}, ${this.getBR().toPrint()}]`
    }
    getCoordinateList(): Point2D[] {
-      return [this.UL.clone(), this.UR.clone(), this.BL.clone(), this.BR.clone()]
+      return [this.getUL().clone(), this.getUR().clone(), this.getBL().clone(), this.getBR().clone()]
    }
    canDimensionsFit(box: BoundingBox2D): boolean {
-      return (this.UL.arr[0] + box.xRange <= this.UR.arr[0]) && (this.UL.arr[1] + box.yRange <= this.BL.arr[1])
+      return (this.getUL().arr[0] + box.xRange <= this.getUR().arr[0]) && (this.getUL().arr[1] + box.yRange <= this.getBL().arr[1])
    }
    clone(): BoundingBox2D {
-      return new BoundingBox2D(this.UL, this.UR, this.BL, this.BR)
+      return new BoundingBox2D(this.#UL, this.#UR, this.#BL, this.#BR, this.gap)
    }
    preHash(): string {
       return this.toPrint();

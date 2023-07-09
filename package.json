@@ -8,5 +8,5 @@
     "main": "node main.js",
     "rotationTest": "node RotationTest.js"
   },
-  "version": "0.0.46"
+  "version": "0.0.47"
 }

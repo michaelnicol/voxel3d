@@ -12,6 +12,6 @@ for (let point of data) {
 
 console.log("Created Box")
 
-let box = Utilities.minimumBoundingBox(Utilities.convexHull(pointList))
+let box = Utilities.minimumBoundingBox(Utilities.convexHull(pointList), 0)
 
 console.log(box)

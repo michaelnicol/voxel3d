@@ -185,9 +185,10 @@ export class Utilities {
      *
      * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2 | JavaScript atan2 Method}
      * @param convexHull Ordered convex hull points
+     * @param gap If the resulting bounding box should have a gap around it.
      * @returns Format of MinimumRotationScheme
      */
-    static minimumBoundingBox(convexHull) {
+    static minimumBoundingBox(convexHull, gap) {
         let bestArea = Number.MAX_VALUE;
         let bestAngle = 0;
         let bestHull = [];
@@ -197,21 +198,26 @@ export class Utilities {
                 "rotationCenter": convexHull[0].clone(),
                 "originalConvexHull": convexHull,
                 "rotatedConvexHull": [convexHull[0].clone()],
-                "rotatedBoundingBox": new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0])
+                "rotatedBoundingBox": new BoundingBox2D(convexHull[0], convexHull[0], convexHull[0], convexHull[0], gap)
             };
         }
-        let bestBox = new BoundingBox2D(new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0));
+        /**
+         * Default placeholder box. The bestArea is not tracked from this bestBox variable for this reason.
+         */
+        let bestBox = new BoundingBox2D(new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0), new Point2D(0, 0), gap);
+        // Find the center of rotation for the convex hull.
         let center = Utilities.pointCenter(convexHull);
         for (let i = 0; i < convexHull.length - 1; i++) {
+            // Find the angle of this convex hull segment.
             let currentPoint = convexHull[i];
             let nextPoint = convexHull[i + 1];
             const angle = Math.atan2((nextPoint.arr[1] - currentPoint.arr[1]), (nextPoint.arr[0] - currentPoint.arr[0]));
-            // Create an inverted bounding box for default values
-            let currentBox = new BoundingBox2D(new Point2D(Number.MAX_VALUE, -Number.MAX_VALUE), new Point2D(-Number.MAX_VALUE, -Number.MAX_VALUE), new Point2D(Number.MAX_VALUE, Number.MAX_VALUE), new Point2D(-Number.MAX_VALUE, Number.MAX_VALUE));
+            // Rotate all coordinates in the bounding box
             let newBoxCoordinates = convexHull.reduce((accumulator, current) => {
+                // Rotating a point returns a new one.
                 return accumulator.push(Utilities.rotatePoint(current, center, angle)), accumulator;
             }, []);
-            currentBox.createCorners(newBoxCoordinates);
+            let currentBox = BoundingBox2D.createFromExtremes(newBoxCoordinates, gap);
             if (currentBox.area < bestArea) {
                 bestBox = currentBox;
                 bestArea = currentBox.area;
