@@ -115,7 +115,7 @@ export class BoundingBox2D {
         return [this.getUL(), this.getUR(), this.getBL(), this.getBR()];
     }
     canDimensionsFit(box) {
-        return (this.getUL().arr[0] + box.xRange <= this.getUR().arr[0]) && (this.getUL().arr[1] + box.yRange <= this.getBL().arr[1]);
+        return (this.getUL().arr[0] + box.xRange <= this.getUR().arr[0]) && (this.getBL().arr[1] + box.yRange <= this.getUL().arr[1]);
     }
     clone() {
         return new BoundingBox2D(this.#UL, this.#UR, this.#BL, this.#BR, this.gap);
