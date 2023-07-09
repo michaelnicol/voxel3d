@@ -14,4 +14,8 @@ console.log("Created Box")
 
 let box = Utilities.minimumBoundingBox(Utilities.convexHull(pointList), 0)
 
-console.log(box)
+console.log(box.rotatedBoundingBox.toPrint())
+
+box.rotatedBoundingBox.translateBoundingBox(new Point2D(5,5))
+
+console.log(box.rotatedBoundingBox.toPrint())

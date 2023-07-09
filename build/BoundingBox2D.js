@@ -90,16 +90,23 @@ export class BoundingBox2D {
         return new BoundingBox2D(new Point2D(minX, maxY), new Point2D(maxX, maxY), new Point2D(minX, minY), new Point2D(maxX, minY), gap);
     }
     cornersHaveChanged() {
+        // Center does not need to account for the gap
         this.center = Utilities.pointCenter([this.#BL, this.#BR, this.#UL, this.#UR]);
         this.xRange = Math.abs(this.getUR().arr[0] - this.getUL().arr[0]);
         this.yRange = Math.abs(this.getUL().arr[1] - this.getBL().arr[1]);
         this.area = Utilities.pythagorean(this.getUL(), this.getUR()) * Utilities.pythagorean(this.getBL(), this.getBR());
     }
+    translateBoundingBox(translation) {
+        this.setUL(new Point2D(this.#UL.arr[0] + translation.arr[0], this.#UL.arr[1] + translation.arr[1]));
+        this.setUR(new Point2D(this.#UR.arr[0] + translation.arr[0], this.#UR.arr[1] + translation.arr[1]));
+        this.setBL(new Point2D(this.#BL.arr[0] + translation.arr[0], this.#BL.arr[1] + translation.arr[1]));
+        this.setBR(new Point2D(this.#BR.arr[0] + translation.arr[0], this.#BR.arr[1] + translation.arr[1]));
+    }
     toPrint() {
         return `[${this.getUL().toPrint()}, ${this.getUR().toPrint()}, ${this.getBL().toPrint()}, ${this.getBR().toPrint()}]`;
     }
     getCoordinateList() {
-        return [this.getUL().clone(), this.getUR().clone(), this.getBL().clone(), this.getBR().clone()];
+        return [this.getUL(), this.getUR(), this.getBL(), this.getBR()];
     }
     canDimensionsFit(box) {
         return (this.getUL().arr[0] + box.xRange <= this.getUR().arr[0]) && (this.getUL().arr[1] + box.yRange <= this.getBL().arr[1]);
