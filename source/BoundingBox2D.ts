@@ -21,6 +21,7 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
     */
    #UR!: Point2D
    center!: Point2D
+   translation: Point2D = new Point2D(0, 0)
    xRange!: number
    yRange!: number
    area!: number
@@ -35,26 +36,26 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
    }
    getUL(): Point2D {
       let ul = this.#UL.clone()
-      ul.arr[0] -= this.gap;
-      ul.arr[1] += this.gap;
+      ul.arr[0] -= (this.gap + this.translation.arr[0]);
+      ul.arr[1] += (this.gap + this.translation.arr[1]);
       return ul
    }
    getUR(): Point2D {
       let ur = this.#UR.clone()
-      ur.arr[0] += this.gap;
-      ur.arr[1] += this.gap;
+      ur.arr[0] += (this.gap + this.translation.arr[0]);
+      ur.arr[1] += (this.gap + this.translation.arr[1]);
       return ur
    }
    getBL(): Point2D {
       let bl = this.#BL.clone()
-      bl.arr[0] -= this.gap;
-      bl.arr[1] -= this.gap;
+      bl.arr[0] -= (this.gap + this.translation.arr[0]);
+      bl.arr[1] -= (this.gap + this.translation.arr[1]);
       return bl
    }
    getBR(): Point2D {
       let br = this.#BR.clone()
-      br.arr[0] += this.gap;
-      br.arr[1] -= this.gap;
+      br.arr[0] += (this.gap + this.translation.arr[0]);
+      br.arr[1] -= (this.gap + this.translation.arr[1]);
       return br
    }
    setUL(ul: Point2D) {
@@ -79,13 +80,13 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
          let y = point.arr[1]
          if (x > maxX) {
             maxX = x;
-         } 
+         }
          if (x < minX) {
             minX = x;
          }
          if (y > maxY) {
             maxY = y;
-         }  
+         }
          if (y < minY) {
             minY = y;
          }
@@ -100,10 +101,7 @@ export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
       this.area = Utilities.pythagorean(this.getUL(), this.getUR()) * Utilities.pythagorean(this.getBL(), this.getBR())
    }
    translateBoundingBox(translation: Point2D) {
-      this.setUL(new Point2D(this.#UL.arr[0] + translation.arr[0], this.#UL.arr[1] + translation.arr[1]))
-      this.setUR(new Point2D(this.#UR.arr[0] + translation.arr[0], this.#UR.arr[1] + translation.arr[1]))
-      this.setBL(new Point2D(this.#BL.arr[0] + translation.arr[0], this.#BL.arr[1] + translation.arr[1]))
-      this.setBR(new Point2D(this.#BR.arr[0] + translation.arr[0], this.#BR.arr[1] + translation.arr[1]))
+      this.translation = translation.clone()
    }
    toPrint(): string {
       return `[${this.getUL().toPrint()}, ${this.getUR().toPrint()}, ${this.getBL().toPrint()}, ${this.getBR().toPrint()}]`

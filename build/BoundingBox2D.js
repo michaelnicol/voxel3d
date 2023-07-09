@@ -18,6 +18,7 @@ export class BoundingBox2D {
      */
     #UR;
     center;
+    translation = new Point2D(0, 0);
     xRange;
     yRange;
     area;
@@ -32,26 +33,26 @@ export class BoundingBox2D {
     }
     getUL() {
         let ul = this.#UL.clone();
-        ul.arr[0] -= this.gap;
-        ul.arr[1] += this.gap;
+        ul.arr[0] -= (this.gap + this.translation.arr[0]);
+        ul.arr[1] += (this.gap + this.translation.arr[1]);
         return ul;
     }
     getUR() {
         let ur = this.#UR.clone();
-        ur.arr[0] += this.gap;
-        ur.arr[1] += this.gap;
+        ur.arr[0] += (this.gap + this.translation.arr[0]);
+        ur.arr[1] += (this.gap + this.translation.arr[1]);
         return ur;
     }
     getBL() {
         let bl = this.#BL.clone();
-        bl.arr[0] -= this.gap;
-        bl.arr[1] -= this.gap;
+        bl.arr[0] -= (this.gap + this.translation.arr[0]);
+        bl.arr[1] -= (this.gap + this.translation.arr[1]);
         return bl;
     }
     getBR() {
         let br = this.#BR.clone();
-        br.arr[0] += this.gap;
-        br.arr[1] -= this.gap;
+        br.arr[0] += (this.gap + this.translation.arr[0]);
+        br.arr[1] -= (this.gap + this.translation.arr[1]);
         return br;
     }
     setUL(ul) {
@@ -97,10 +98,7 @@ export class BoundingBox2D {
         this.area = Utilities.pythagorean(this.getUL(), this.getUR()) * Utilities.pythagorean(this.getBL(), this.getBR());
     }
     translateBoundingBox(translation) {
-        this.setUL(new Point2D(this.#UL.arr[0] + translation.arr[0], this.#UL.arr[1] + translation.arr[1]));
-        this.setUR(new Point2D(this.#UR.arr[0] + translation.arr[0], this.#UR.arr[1] + translation.arr[1]));
-        this.setBL(new Point2D(this.#BL.arr[0] + translation.arr[0], this.#BL.arr[1] + translation.arr[1]));
-        this.setBR(new Point2D(this.#BR.arr[0] + translation.arr[0], this.#BR.arr[1] + translation.arr[1]));
+        this.translation = translation.clone();
     }
     toPrint() {
         return `[${this.getUL().toPrint()}, ${this.getUR().toPrint()}, ${this.getBL().toPrint()}, ${this.getBR().toPrint()}]`;
