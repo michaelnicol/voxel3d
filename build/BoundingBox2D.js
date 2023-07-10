@@ -103,7 +103,7 @@ export class BoundingBox2D {
         this.center = Utilities.pointCenter([this.#BL, this.#BR, this.#UL, this.#UR]);
         this.xRange = Math.abs(this.getUR().arr[0] - this.getUL().arr[0]);
         this.yRange = Math.abs(this.getUL().arr[1] - this.getBL().arr[1]);
-        this.area = Utilities.pythagorean(this.getUL(), this.getUR()) * Utilities.pythagorean(this.getBL(), this.getBR());
+        this.area = Utilities.pythagorean(this.getUL(), this.getUR()) * Utilities.pythagorean(this.getBL(), this.getUL());
     }
     translateBoundingBox(translation) {
         this.translation = translation.clone();
