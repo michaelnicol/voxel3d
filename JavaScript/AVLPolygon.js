@@ -35,6 +35,15 @@ export class AVLPolygon extends AVLObject {
         this.hasFill = false;
         return this;
     }
+    verticesHaveMutated() {
+        this.internalStorage.reset();
+        this.internalStorage.addCoordinates(this.vertices, false);
+        this.useSort = false;
+        this.passes = -1;
+        this.hasEdges = false;
+        this.hasFill = false;
+        return this;
+    }
     createEdges() {
         this.internalStorage.reset();
         this.useSort = false;

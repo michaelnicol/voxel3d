@@ -43,6 +43,15 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> i
       this.hasFill = false
       return this;
    }
+   verticesHaveMutated(): AVLPolygon<E,K> {
+      this.internalStorage.reset()
+      this.internalStorage.addCoordinates(this.vertices, false)
+      this.useSort = false
+      this.passes = -1;
+      this.hasEdges = false
+      this.hasFill = false
+      return this;
+   }
    createEdges(): AVLPolygon<E, K> {
       this.internalStorage.reset()
       this.useSort = false
