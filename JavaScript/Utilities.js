@@ -22,26 +22,26 @@ export class Utilities {
         let voxelStorage = new VoxelStorage(p1.dimensionCount());
         let hashStorage = new HashStorage(p1.dimensionCount());
         let flag = true;
-        for (let i = 0; i < p1.dimensionCount(); i++) {
-            if (p1.arr[i] != p2.arr[i]) {
+        const startPoint = p1.arr.map(x => Math.round(x));
+        const endPoint = p2.arr.map(x => Math.round(x));
+        for (let i = 0; i < startPoint.length; i++) {
+            if (startPoint[i] != endPoint[i]) {
                 flag = false;
             }
         }
         if (flag) {
             if (returnType === 0) {
-                return [p1];
+                return [p1.factoryMethod(startPoint)];
             }
             else if (returnType === 1) {
-                voxelStorage.addCoordinate(p1, false);
+                voxelStorage.addCoordinate(p1.factoryMethod(startPoint), false);
                 return voxelStorage;
             }
             else if (returnType === 2) {
-                hashStorage.addCoordinate(p1, false);
+                hashStorage.addCoordinate(p1.factoryMethod(startPoint), false);
                 return hashStorage;
             }
         }
-        const startPoint = p1.arr;
-        const endPoint = p2.arr;
         const currentPoint = [...startPoint];
         const differences = [];
         const increments = [];

@@ -13,6 +13,7 @@ export class AVLPolygon extends AVLObject {
     pointLowerFactoryMethod;
     pointFactoryMethod;
     hasEdges = false;
+    edgeStorage = {};
     hasFill = false;
     constructor(v, maxDimensions) {
         super(maxDimensions);
@@ -33,18 +34,23 @@ export class AVLPolygon extends AVLObject {
         this.passes = -1;
         this.hasEdges = false;
         this.hasFill = false;
+        this.edgeStorage = {};
         return this;
     }
     verticesHaveMutated() {
         this.internalStorage.reset();
+        this.edgeStorage = {};
         this.internalStorage.addCoordinates(this.vertices, false);
-        this.useSort = false;
-        this.passes = -1;
-        this.hasEdges = false;
-        this.hasFill = false;
+        if (this.hasEdges) {
+            this.createEdges();
+        }
+        if (this.hasFill) {
+            this.fillPolygon(this.passes, this.useSort);
+        }
         return this;
     }
     createEdges() {
+        this.edgeStorage = {};
         this.internalStorage.reset();
         this.useSort = false;
         this.passes = -1;
@@ -52,10 +58,14 @@ export class AVLPolygon extends AVLObject {
         this.hasFill = false;
         for (let i = 0; i < this.vertices.length; i++) {
             if (i + 1 === this.vertices.length) {
-                this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0), false);
+                let coords = Utilities.bresenham(this.vertices[i], this.vertices[0], 0);
+                this.edgeStorage[`V${i}V0`] = coords;
+                this.addCoordinates(coords, false);
             }
             else {
-                this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0), false);
+                let coords = Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0);
+                this.edgeStorage[`V${i}V${i + 1}`] = coords;
+                this.addCoordinates(coords, false);
             }
         }
         return this;

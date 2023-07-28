@@ -1,17 +1,12 @@
 import * as voxel3d from "./JavaScript/voxel3d.js"
 
-let data2 = 
-[[18,20], [20,20], [18,-1.1102230246251565e-16], [20,0]] 
-let data1 = 
-[[-1.5,1.5], [1.5,1.5], [-1.5,-1.5], [1.5,-1.5]] 
+let p1 = new voxel3d.AVLPolygon([new voxel3d.Point3D(0,0,0),new voxel3d.Point3D(5,0,0),new voxel3d.Point3D(5,5,5)], 3)
 
-data2 = data2.map((value) => new voxel3d.Point2D(value[0], value[1]))
-data1 = data1.map((value) => new voxel3d.Point2D(value[0], value[1]))
+let p2 = new voxel3d.AVLPolygon([new voxel3d.Point3D(0,0,20),new voxel3d.Point3D(5,0,30),new voxel3d.Point3D(5,5,50)], 3)
 
-let boxTwo = voxel3d.BoundingBox2D.createFromExtremes(data2, 0)
-let boxOne = voxel3d.BoundingBox2D.createFromExtremes(data1, 0)
+p1.createEdges()
+p1.fillPolygon(1, true)
+p2.createEdges()
+p2.fillPolygon(1, true)
 
-console.log(boxTwo)
-console.log(boxOne)
-
-console.log(boxOne.canDimensionsFit(boxTwo))
+console.log(p1)

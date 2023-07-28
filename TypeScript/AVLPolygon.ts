@@ -10,6 +10,8 @@ import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js"
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
 import { cloneable } from "./cloneable.js";
 
+export type PolygonEdgeDirectory = Record<string, Point[]>
+
 /**
  * E is the dimension of the polygon, K is the one less.
  */
@@ -21,6 +23,7 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> i
    pointLowerFactoryMethod!: Function;
    pointFactoryMethod!: Function;
    hasEdges: boolean = false
+   edgeStorage: PolygonEdgeDirectory = {}
    hasFill: boolean = false
    constructor(v: E[], maxDimensions: number) {
       super(maxDimensions)
@@ -41,18 +44,23 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> i
       this.passes = -1;
       this.hasEdges = false
       this.hasFill = false
+      this.edgeStorage = {}
       return this;
    }
    verticesHaveMutated(): AVLPolygon<E,K> {
       this.internalStorage.reset()
+      this.edgeStorage = {}
       this.internalStorage.addCoordinates(this.vertices, false)
-      this.useSort = false
-      this.passes = -1;
-      this.hasEdges = false
-      this.hasFill = false
+      if (this.hasEdges) {
+         this.createEdges()
+      }
+      if (this.hasFill) {
+         this.fillPolygon(this.passes, this.useSort)
+      }
       return this;
    }
    createEdges(): AVLPolygon<E, K> {
+      this.edgeStorage = {}
       this.internalStorage.reset()
       this.useSort = false
       this.passes = -1;
@@ -60,9 +68,13 @@ export class AVLPolygon<E extends Point, K extends Point> extends AVLObject<E> i
       this.hasFill = false
       for (let i = 0; i < this.vertices.length; i++) {
          if (i + 1 === this.vertices.length) {
-            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[0], 0) as E[], false)
+            let coords = Utilities.bresenham(this.vertices[i], this.vertices[0], 0) as E[]
+            this.edgeStorage[`V${i}V0`] = coords
+            this.addCoordinates(coords, false)
          } else {
-            this.internalStorage, this.addCoordinates(Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0) as E[], false)
+            let coords = Utilities.bresenham(this.vertices[i], this.vertices[i + 1], 0) as E[]
+            this.edgeStorage[`V${i}V${i+1}`] = coords
+            this.addCoordinates(coords, false)
          }
       }
       return this;
