@@ -3,8 +3,8 @@ import { AVLTree } from "./build/AVLTree.js"
 import { NumberComparator } from "./build/NumberComparator.js"
 import { NumberWrapper } from "./build/NumberWrapper.js"
 import { DoublyLinkedList } from "./build/DoublyLinkedList.js"
-import { VoxelStorageNode } from "./build/VoxelStorageNode.js"
-import { VoxelStorage } from "./build/VoxelStorage.js"
+import { TreeStorageNode } from "./build/TreeStorageNode.js"
+import { TreeStorage } from "./build/TreeStorage.js"
 import { Point3D } from "./build/Point3D.js"
 import { BasicSetOperations } from "./build/BasicSetOperations.js"
 import { HashStorage } from "./build/HashStorage.js"
@@ -35,7 +35,7 @@ for (let i = 0; i < amounts.length; i++) {
    // console.log("Hash | " + (d) + (" ".repeat(8-(""+d).length)) + " | " + amount)
    hash.push(d);
 
-   let base = new VoxelStorage(3, new Point3D().factoryMethod);
+   let base = new TreeStorage(3, new Point3D().factoryMethod);
 
    start = (new Date()).getTime();
 

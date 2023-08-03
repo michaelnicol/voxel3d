@@ -1,10 +1,10 @@
-import { VoxelStorage } from "./VoxelStorage.js";
+import { TreeStorage } from "./TreeStorage.js";
 export class AVLObject {
     internalStorage;
     maxDimensions;
     constructor(maxDimensions) {
         this.maxDimensions = maxDimensions;
-        this.internalStorage = new VoxelStorage(maxDimensions);
+        this.internalStorage = new TreeStorage(maxDimensions);
     }
     setStorage(newStorage) {
         this.internalStorage = newStorage;

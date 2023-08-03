@@ -1,21 +1,20 @@
-import { Comparator } from "./Comparator.js";
-import { ValidObject } from "./ValidObject.js";
+import { Comparator } from "../Comparator.js";
+import { ValidObject } from "../ValidObject.js";
 import { AVLTreeNode } from "./AVLTreeNode.js";
 /**
  * Defines a new AVL Tree for any Valid Objects
  * 
  * Constraints: Maximum amount of unique objects (nodes): 2^24 ~= 16,777,216 due to hash map size limitations. Duplicated objects are combined into a single node.
  * 
- *  
  */
 export class AVLTree<E extends ValidObject> implements ValidObject {
   private comparator: Comparator<E>;
   private root: AVLTreeNode<E> | undefined = undefined;
-  private hashMap: Map<E, AVLTreeNode<E>> = new Map();
+  private uniqueCoordinateCount: number = 0;
+  private allCoordinateCount: number = 0;
   constructor(rootData: E | undefined, comparator: Comparator<E>) {
     if (rootData != undefined) {
       this.root = new AVLTreeNode(undefined, undefined, undefined, rootData);
-      this.hashMap.set(rootData.preHash(), this.root);
     }
     this.comparator = comparator;
   }
@@ -122,7 +121,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
             }
           }
         } else if (nodeToRemove.hasRight() && !nodeToRemove.hasLeft()) {
-            // // console.log("nodeToRemove.hasRight() && !nodeToRemove.hasLeft()")
+          // // console.log("nodeToRemove.hasRight() && !nodeToRemove.hasLeft()")
           // The parent of the node to remove.
           let subTreeParentReference = nodeToRemove === this.root ? this.root as AVLTreeNode<E> : nodeToRemove.getParent() as AVLTreeNode<E>;
           if (nodeToRemove === this.root) {
@@ -169,29 +168,49 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
       if (nodeToRemove.getParent() !== undefined) {
         this.rebalance(nodeToRemove.getParent() as AVLTreeNode<E>)
       }
-      this.hashMap.delete(value.preHash());
       // // console.log("Node After rebalance")
       // // console.log(this.toPrint())
       return nodeToRemove;
     }
   }
   /**
-   * Time complexity: O(1)
+   * Time complexity: O(log2(N))
    * 
    * @param value 
    * @returns Node containing the value
    */
   public getItem(value: E): AVLTreeNode<E> | undefined {
-    return this.hashMap.get(value.preHash());
+    if (this.root === undefined) {
+      return undefined
+    }
+    let current: AVLTreeNode<E> = this.root as AVLTreeNode<E>;
+    while (true) {
+      let result = this.comparator.compare(current.getValue() as E, value)
+      if (result === 0) {
+        return current
+      } else if (result < 0) {
+        if (current.hasRight()) {
+          current = current.getRight() as AVLTreeNode<E>
+        } else {
+          return undefined
+        }
+      } else if (result > 0) {
+        if (current.hasLeft()) {
+          current = current.getLeft() as AVLTreeNode<E>
+        } else {
+          return undefined
+        }
+      }
+    }
   }
   /**
-   * Time complexity: O(1)
+   * Time complexity: O(log2(n))
    * 
    * @param value
    * @returns True is the tree has the value in any node, false if it does not.
    */
   public hasItem(value: E): boolean {
-    return this.hashMap.has(value.preHash());
+    return this.getItem(value) !== undefined
   }
   /**
    * Time complexity: O(Log2(n)) where n is the number of nodes.
@@ -203,18 +222,18 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
     if (value === undefined) {
       throw new Error("Undefined Value to Add");
     }
-    // // // // console.log("ADDING VALUE: " + value.toPrint())
     const newNode: AVLTreeNode<E> = new AVLTreeNode<E>(undefined, undefined, undefined, value);
     if (this.root === undefined) {
       this.root = newNode;
-      this.hashMap.set(value.preHash(), newNode);
       return this.root;
     }
-    if (!this.hashMap.has(value.preHash())) {
-      this.hashMap.set(value.preHash(), newNode);
-    } else {
-      this.hashMap.get(value.preHash())?.increaseAmount();
+    const hasItem = this.getItem(value)
+    if (hasItem !== undefined) {
+      this.allCoordinateCount += 1
+      hasItem.increaseAmount()
       return newNode;
+    } else {
+      this.uniqueCoordinateCount += 1;
     }
     let current: AVLTreeNode<E> = this.root;
     while (true) {
@@ -227,9 +246,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
         } else {
           // "On your Left" - Captain America: The Winter Soldier, 2014
           current.setLeft(newNode);
-          // // // // console.log("Increasing Height Above")
           this.increaseBalanceAbove(newNode);
-          // // // // console.log("Left, Before rebalance: \n" + this.toPrint())
           this.rebalance(newNode)
           return newNode;
         }
@@ -238,9 +255,7 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
           current = current.getRight() as AVLTreeNode<E>;
         } else {
           current.setRight(newNode);
-          // // // // console.log("Decreasing Height Above")
           this.increaseBalanceAbove(newNode)
-          // // // // console.log("Right, Before rebalance: \n" + this.toPrint())
           this.rebalance(newNode)
           return newNode;
         }
@@ -252,16 +267,12 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
 
 
   increaseBalanceAbove(node: AVLTreeNode<E>) {
-    // // // console.log("Called Increase Height above")
-    // // // console.log(node.toPrint())
     let current: AVLTreeNode<E> = node;
     while (current.getParent() != undefined) {
       let parent: AVLTreeNode<E> = current.getParent() as AVLTreeNode<E>;
       if (parent.getLeft() === current) {
-        // // // console.log("Decreased Balance")
         parent.decreaseBalance()
       } else {
-        // // // console.log("Increased Balance")
         parent.increaseBalance()
       }
       current = parent
@@ -271,20 +282,16 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
 
 
   decreaseBalanceAbove(node: AVLTreeNode<E>) {
-    // // // console.log("Called Decrease Above")
-    // // // console.log("Node: " + node.toPrint())
     let current: AVLTreeNode<E> = node;
     while (current.getParent() != undefined) {
       let parent: AVLTreeNode<E> = current.getParent() as AVLTreeNode<E>;
       let prevBalance = parent.getBalance()
       if (parent.getLeft() === current) {
-        // // // console.log("parent.increaseBalance")
         parent.increaseBalance()
         if (prevBalance >= 0) {
           return;
         }
       } else {
-        // // // console.log("parent.decreaseBalance")
         parent.decreaseBalance()
         if (prevBalance = 0) {
           return;
@@ -411,8 +418,8 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
     }
     return str;
   }
-  size(): number {
-    return this.hashMap.size;
+  size(uniqueCoordinates: boolean): number {
+    return uniqueCoordinates ? this.uniqueCoordinateCount : this.allCoordinateCount
   }
   /**
    * @implements
@@ -425,30 +432,21 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
   toPrint(repeat: boolean = true): string {
     return this.root === undefined ? "undefined" : this.toPrintDPS(this.root as AVLTreeNode<E>, "", 0, repeat);
   }
-  getHashMap(): Map<E, AVLTreeNode<E>> {
-    return this.hashMap;
-  }
   getDeepestNode(node: AVLTreeNode<E>, deepest: number[], current: number[]): void {
-    // // // // console.log(node.toPrint())
-    // // // // console.log(deepest, current)
     if (node.hasLeft()) {
-      // // // // console.log("Node Has Left")
       let newCurrent = [...current]
       newCurrent[0] += 1;
       if (newCurrent[0] > deepest[0]) {
         deepest[0] = newCurrent[0]
       }
-      // // // // console.log('Going Left')
       this.getDeepestNode(node.getLeft() as AVLTreeNode<E>, deepest, [...newCurrent])
     }
     if (node.hasRight()) {
-      // // // // console.log("Node Has Left")
       let newCurrent = [...current]
       newCurrent[0] += 1;
       if (newCurrent[0] > deepest[0]) {
         deepest[0] = newCurrent[0]
       }
-      // // // // console.log('Going Right')
       this.getDeepestNode(node.getRight() as AVLTreeNode<E>, deepest, [...newCurrent])
     }
   }
@@ -460,7 +458,6 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
     } else {
       leftDeepestRef = [0]
     }
-    // // // // console.log("---------")
     if (node.hasRight()) {
       this.getDeepestNode(node.getRight() as AVLTreeNode<E>, rightDeepestRef, [1])
     } else {
@@ -469,10 +466,6 @@ export class AVLTree<E extends ValidObject> implements ValidObject {
     let left = leftDeepestRef[0]
     let right = rightDeepestRef[0]
     if (right - left != node.getBalance()) {
-      // // // // console.log("Left, Right")
-      // // // // console.log(left, right)
-      // // // // console.log("At Node")
-      // // // // console.log(node.toPrint())
       throw new Error()
       return node;
     }

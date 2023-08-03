@@ -1,4 +1,6 @@
-import { ValidObject } from "./ValidObject.js";
+import { ValidObject } from "../ValidObject.js";
+
+// import { ValidObject } from "../../"
 export class AVLTreeNode<E extends ValidObject> implements ValidObject {
   private left?: AVLTreeNode<E>;
   private right?: AVLTreeNode<E>;

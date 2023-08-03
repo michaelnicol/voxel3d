@@ -1,6 +1,6 @@
 import { Point } from "./Point.js";
-import { HashStorage } from "./HashStorage.js";
-import { VoxelStorage } from "./VoxelStorage.js";
+import { HashStorage } from "./Storage/HashStorage/HashStorage.js";
+import { TreeStorage } from "./Storage/TreeStorage/TreeStorage.js";
 import { Point2D } from "./Point2D.js";
 import { Point3D } from "./Point3D.js";
 import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
@@ -31,12 +31,12 @@ export class Utilities {
       }
       return Math.sqrt(d);
    }
-   static bresenham(p1: Point, p2: Point, returnType: number): Point[] | VoxelStorage<Point> | HashStorage<Point> {
+   static bresenham(p1: Point, p2: Point, returnType: number): Point[] | TreeStorage<Point> | HashStorage<Point> {
       if (p1.dimensionCount() != p2.dimensionCount() || p1.dimensionCount() === 0 || p2.dimensionCount() === 0) {
          throw new Error(`Dimensions are not the same or dimension count is zero: p1 ${p1.dimensionCount()} verse p2 ${p2.dimensionCount()}`)
       }
       let coordinates: Point[] = []
-      let voxelStorage: VoxelStorage<Point> = new VoxelStorage<Point>(p1.dimensionCount())
+      let treeStorage: TreeStorage<Point> = new TreeStorage<Point>(p1.dimensionCount())
       let hashStorage: HashStorage<Point> = new HashStorage<Point>(p1.dimensionCount())
       let flag: boolean = true;
       const startPoint: number[] = p1.arr.map(x => Math.round(x));
@@ -50,8 +50,8 @@ export class Utilities {
          if (returnType === 0) {
             return [p1.factoryMethod(startPoint)];
          } else if (returnType === 1) {
-            voxelStorage.addCoordinate(p1.factoryMethod(startPoint), false);
-            return voxelStorage;
+            treeStorage.addCoordinate(p1.factoryMethod(startPoint), false);
+            return treeStorage;
          } else if (returnType === 2) {
             hashStorage.addCoordinate(p1.factoryMethod(startPoint), false);
             return hashStorage;
@@ -82,7 +82,7 @@ export class Utilities {
             if (returnType === 0) {
                return coordinates
             } else if (returnType === 1) {
-               return voxelStorage;
+               return treeStorage;
             } else {
                return hashStorage;
             }
@@ -90,7 +90,7 @@ export class Utilities {
          if (returnType === 0) {
             coordinates.push(p1.factoryMethod([...currentPoint]))
          } else if (returnType === 1) {
-            voxelStorage.addCoordinate(p1.factoryMethod([...currentPoint]), false)
+            treeStorage.addCoordinate(p1.factoryMethod([...currentPoint]), false)
          } else {
             hashStorage.addCoordinate(p1.factoryMethod([...currentPoint]), false)
          }

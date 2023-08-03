@@ -1,10 +1,10 @@
 import { AVLObject } from "./AVLObject.js";
 import { Utilities } from "./Utilities.js";
-import { VoxelStorage } from "./VoxelStorage.js";
-import { AVLPolygon } from "./AVLPolygon.js";
+import { TreeStorage } from "./TreeStorage.js";
+import { Polygon } from "./Polygon.js";
 import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
-export class AVLConvexExtrude3D extends AVLObject {
+export class ConvexExtrude3D extends AVLObject {
     segmentsEdges = [];
     segmentAnalyzers = [];
     extrudeObjects = [];
@@ -30,7 +30,7 @@ export class AVLConvexExtrude3D extends AVLObject {
         for (let i = 0; i < this.extrudeObjects.length - 1; i++) {
             let startingVertices = this.extrudeObjects[i].vertices;
             let endingVertices = this.extrudeObjects[i + 1].vertices;
-            this.segmentsEdges.push(new VoxelStorage(3));
+            this.segmentsEdges.push(new TreeStorage(3));
             this.segmentAnalyzers.push(new DimensionalAnalyzer(this.segmentsEdges[i]));
             for (let sv of startingVertices) {
                 for (let ev of endingVertices) {
@@ -55,7 +55,7 @@ export class AVLConvexExtrude3D extends AVLObject {
         this.options = [...options];
         this.fillEndCaps = fillEndCaps;
         this.internalStorage.reset();
-        let tempPolygon = new AVLPolygon([], 2);
+        let tempPolygon = new Polygon([], 2);
         for (let i = 0; i < this.segmentsEdges.length; i++) {
             let sortedSpans = this.segmentsEdges[i].getSortedRange();
             const { passes, maxSlices, shell, fillSegmentEndCaps } = options[i];

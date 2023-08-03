@@ -1,5 +1,5 @@
-import { HashStorage } from "./HashStorage.js";
-import { VoxelStorage } from "./VoxelStorage.js";
+import { HashStorage } from "./Storage/HashStorage/HashStorage.js";
+import { TreeStorage } from "./Storage/TreeStorage/TreeStorage.js";
 import { Point2D } from "./Point2D.js";
 import { PointFactoryMethods } from "./PointFactoryMethods.js";
 import { BoundingBox2D } from "./BoundingBox2D.js";
@@ -19,7 +19,7 @@ export class Utilities {
             throw new Error(`Dimensions are not the same or dimension count is zero: p1 ${p1.dimensionCount()} verse p2 ${p2.dimensionCount()}`);
         }
         let coordinates = [];
-        let voxelStorage = new VoxelStorage(p1.dimensionCount());
+        let treeStorage = new TreeStorage(p1.dimensionCount());
         let hashStorage = new HashStorage(p1.dimensionCount());
         let flag = true;
         const startPoint = p1.arr.map(x => Math.round(x));
@@ -34,8 +34,8 @@ export class Utilities {
                 return [p1.factoryMethod(startPoint)];
             }
             else if (returnType === 1) {
-                voxelStorage.addCoordinate(p1.factoryMethod(startPoint), false);
-                return voxelStorage;
+                treeStorage.addCoordinate(p1.factoryMethod(startPoint), false);
+                return treeStorage;
             }
             else if (returnType === 2) {
                 hashStorage.addCoordinate(p1.factoryMethod(startPoint), false);
@@ -69,7 +69,7 @@ export class Utilities {
                     return coordinates;
                 }
                 else if (returnType === 1) {
-                    return voxelStorage;
+                    return treeStorage;
                 }
                 else {
                     return hashStorage;
@@ -79,7 +79,7 @@ export class Utilities {
                 coordinates.push(p1.factoryMethod([...currentPoint]));
             }
             else if (returnType === 1) {
-                voxelStorage.addCoordinate(p1.factoryMethod([...currentPoint]), false);
+                treeStorage.addCoordinate(p1.factoryMethod([...currentPoint]), false);
             }
             else {
                 hashStorage.addCoordinate(p1.factoryMethod([...currentPoint]), false);

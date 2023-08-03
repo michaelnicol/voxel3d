@@ -5,7 +5,7 @@ import { PointFactoryMethods } from "./PointFactoryMethods.js";
 /**
  * E is the dimension of the polygon, K is the one less.
  */
-export class AVLPolygon extends AVLObject {
+export class Polygon extends AVLObject {
     vertices = [];
     #storageMap;
     passes = -1;
@@ -77,7 +77,7 @@ export class AVLPolygon extends AVLObject {
         this.hasFill = true;
         this.passes = passes;
         this.useSort = useSort;
-        this.internalStorage.findRangeOutdatedRanges();
+        this.internalStorage.correctOutdatedRanges();
         let sortedSpans = this.internalStorage.getSortedRange();
         let referencePoint = this.pointLowerFactoryMethod(new Array(this.maxDimensions - 1).fill(0));
         for (let i = 0; i < passes; i++) {
@@ -101,7 +101,7 @@ export class AVLPolygon extends AVLObject {
         return this;
     }
     clone() {
-        let polygon = new AVLPolygon([...this.vertices].reduce((accumulator, value) => {
+        let polygon = new Polygon([...this.vertices].reduce((accumulator, value) => {
             return accumulator.push(value), accumulator;
         }, []), this.maxDimensions);
         if (this.hasEdges) {

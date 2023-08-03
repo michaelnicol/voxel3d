@@ -3,17 +3,17 @@ import { AVLTree } from "./build/AVLTree.js"
 import { NumberComparator } from "./build/NumberComparator.js"
 import { NumberWrapper } from "./build/NumberWrapper.js"
 import { DoublyLinkedList } from "./build/DoublyLinkedList.js"
-import { VoxelStorageNode } from "./build/VoxelStorageNode.js"
-import { VoxelStorage } from "./build/VoxelStorage.js"
+import { TreeStorageNode } from "./build/TreeStorageNode.js"
+import { TreeStorage } from "./build/TreeStorage.js"
 import { Point3D } from "./build/Point3D.js"
 import { BasicSetOperations } from "./build/BasicSetOperations.js"
 import { HashStorage } from "./build/HashStorage.js"
-import { AVLPolygon } from "./build/AVLPolygon.js"
+import { Polygon } from "./build/Polygon.js"
 import { Point2D } from "./build/Point2D.js"
 
 // let vertices = [new Point3D(2,0,0),new Point3D(0,2,0),new Point3D(2,2,0)]
 
-// let polygon = new AVLPolygon(new Point3D().factoryMethod, new Point2D().factoryMethod, vertices)
+// let polygon = new Polygon(new Point3D().factoryMethod, new Point2D().factoryMethod, vertices)
 
 // polygon.createEdges();
 // polygon.fillPolygon();

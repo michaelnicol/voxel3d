@@ -31,6 +31,6 @@ export class TreeStorageNode {
         return this.data;
     }
     toPrint() {
-        return `Data: ${this.data}, SubNodes: ${this.binarySubtree.size()}`;
+        return `Data: ${this.data}, SubNodes: ${this.binarySubtree.size(true)}`;
     }
 }
