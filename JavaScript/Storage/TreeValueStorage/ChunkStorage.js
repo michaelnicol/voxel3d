@@ -14,9 +14,8 @@
 // import { TreeStorage } from "../TreeStorage/TreeStorage.js";
 // import { ChunkLeafNode } from "./ChunkLeafNode.js";
 // import { Chunk } from "../ChunkStorage/Chunk.js";
-
+export {};
 // export type PointChunkTransfer = [Point, Chunk<Point, PointStorage<Point>>]
-
 // export class ChunkStorage<E extends Point, S extends PointStorage<E>> implements ValidObject {
 //    uniqueCoordinateCount: number = 0;
 //    dimensionalRanges: DimensionalRanges = new Map<number, number[]>()
@@ -32,7 +31,6 @@
 //       }
 //       this.pointFactoryMethod = PointFactoryMethods.getFactoryMethod(dimensionCount)
 //    }
-
 //    /**
 //    * Private recursive method for calculating the range of dimensions within the tree.
 //    * 
@@ -313,7 +311,6 @@
 //     * @returns 
 //     */
 //    #getCoordinatesRecursiveCall(pointChunkTransfers: PointChunkTransfer[], currentNode: AVLTreeNode<TreeStorageNode>, currentCoordate: number[], depth: number): void {
-      
 //    }
 //    getCoordinates(): PointChunkTransfer[] {
 //       return []

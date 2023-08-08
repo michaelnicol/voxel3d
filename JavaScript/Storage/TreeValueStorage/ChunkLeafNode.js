@@ -7,7 +7,7 @@
 // import { TreeStorageNode } from "../TreeStorage/TreeStorageNode.js";
 // import { Chunk } from "../ChunkStorage/Chunk.js";
 // import { PointStorage } from "../PointStorage.js";
-
+export {};
 // export class ChunkLeafNode<E extends Point, S extends PointStorage<E>> extends TreeStorageNode {
 //    value!: Chunk<E,S>
 //    constructor(coordinateDate: number, value: Chunk<E,S>) {

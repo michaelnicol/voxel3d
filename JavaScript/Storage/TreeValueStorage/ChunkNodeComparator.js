@@ -2,8 +2,7 @@
 // import { ValidObject } from "../../ValidObject.js";
 // import { cloneable } from "../../cloneable.js";
 // import { TreeStorageNode } from "../TreeStorage/TreeStorageNode.js"
-
-
+export {};
 // export class TreeStorageNodeComparator<V extends ValidObject & cloneable<V>> implements Comparator<TreeStorageNode> {
 //   compare(o1: TreeStorageNode, o2: TreeStorageNode): number {
 //       if (o1.coordinateDate < o2.coordinateDate) {

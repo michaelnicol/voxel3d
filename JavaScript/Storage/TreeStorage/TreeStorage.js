@@ -1,5 +1,5 @@
 import { TreeStorageNode } from "./TreeStorageNode.js";
-import { AVLTree } from "./AVLTree.js";
+import { AVLTree } from "../AVLTree.js";
 import { TreeStorageNodeComparator } from "./TreeStorageNodeComparator.js";
 import { PointFactoryMethods } from "../../PointFactoryMethods.js";
 export class TreeStorage {
