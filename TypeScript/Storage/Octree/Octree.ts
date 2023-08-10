@@ -60,6 +60,8 @@ export class Octree {
      * @param zHigh 
      */
     constructor(xLow: number, yLow: number, zLow: number, xHigh: number, yHigh: number, zHigh: number) {
+        console.log("\nCreating")
+        console.log(xLow, yLow, zLow, xHigh, yHigh, zHigh)
         this.xLow = xLow
         this.yLow = yLow
         this.zLow = zLow
@@ -69,6 +71,11 @@ export class Octree {
         this.midX = Math.round((xHigh - xLow) / 2)
         this.midY = Math.round((yHigh - yLow) / 2)
         this.midZ = Math.round((zHigh - zLow) / 2)
+        console.log("Mid")
+        console.log(this.midX, this.midY, this.midZ)
+        if (this.midX !== this.midY && this.midY !== this.midZ) {
+            throw new Error()
+        }
         if (this.midX === 1 && this.midY === 1 && this.midZ === 1) {
             this.isLeafNode = true
         }
@@ -98,7 +105,6 @@ export class Octree {
         } else {
             return -1
         }
-
     }
     hasCoordinate(point: Point3D): boolean {
         switch (this.getOctant(point)) {
@@ -128,6 +134,7 @@ export class Octree {
         if (this.isLeafNode) {
             return;
         }
+        console.log("Quadrant: "+this.getOctant(point))
         // Find which octant this point falls in
         switch (this.getOctant(point)) {
             case -1:
