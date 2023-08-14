@@ -10,4 +10,4 @@ tree.addCoordinate(new Point3D(0, 0, 0))
 // }
 
 console.log(JSON.stringify(tree, null, 4))
-console.log(tree.hasCoordinate(new Point3D(3, 3, 3)))
+// console.log(tree.hasCoordinate(new Point3D(3, 3, 3)))
