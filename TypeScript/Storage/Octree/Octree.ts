@@ -71,14 +71,16 @@ export class Octree {
         this.midX = Math.round((xHigh - xLow) / 2)
         this.midY = Math.round((yHigh - yLow) / 2)
         this.midZ = Math.round((zHigh - zLow) / 2)
+        this.midX = this.midX === 1 ? 0 : this.midX
+        this.midY = this.midY === 1 ? 0 : this.midY
+        this.midZ = this.midZ === 1 ? 0 : this.midZ
         console.log("Mid")
         console.log(this.midX, this.midY, this.midZ)
-        if (this.midX !== this.midY && this.midY !== this.midZ) {
-            throw new Error()
-        }
-        if (this.midX === 1 && this.midY === 1 && this.midZ === 1) {
-            this.isLeafNode = true
-        }
+        console.log("Lengths")
+        console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow))
+        this.isLeafNode = Math.abs(this.yHigh - this.yLow) === 1 && Math.abs(this.xHigh - this.xLow) === 1 && Math.abs(this.zHigh - this.zLow) === 1
+        this.isLeafNode = yHigh === yLow && zHigh === zLow && xHigh === xLow
+        console.log(this.isLeafNode)
     }
 
     getOctant(point: Point3D): number {
@@ -134,75 +136,84 @@ export class Octree {
         if (this.isLeafNode) {
             return;
         }
-        console.log("Quadrant: "+this.getOctant(point))
         // Find which octant this point falls in
-        switch (this.getOctant(point)) {
-            case -1:
-                return;
-            case 0:
-                if (this.c0 === undefined) {
-                    this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ)
-                    this.nodeCount += 1
-                }
-                if (!this.c0.isLeafNode) {
-                    this.c0.addCoordinate(point)
-                }
-            case 1:
-                if (this.c1 === undefined) {
-                    this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY, this.zLow + this.midZ)
-                    this.nodeCount += 1
-                }
-                if (!this.c1.isLeafNode) {
-                    this.c1.addCoordinate(point)
-                }
-            case 2:
-                if (this.c2 === undefined) {
-                    this.c2 = new Octree(this.xLow, this.midY, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ)
-                    this.nodeCount += 1
-                }
-                if (!this.c2.isLeafNode) {
-                    this.c2.addCoordinate(point)
-                }
-            case 3:
-                if (this.c3 === undefined) {
-                    this.c3 = new Octree(this.midX, this.midY, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ)
-                    this.nodeCount += 1
-                }
-                if (!this.c3.isLeafNode) {
-                    this.c3.addCoordinate(point)
-                }
-            case 4:
-                if (this.c4 === undefined) {
-                    this.c4 = new Octree(this.xLow, this.yLow, this.midZ, this.xLow + this.midX, this.yLow + this.midY, this.zHigh)
-                    this.nodeCount += 1
-                }
-                if (!this.c4.isLeafNode) {
-                    this.c4.addCoordinate(point)
-                }
-            case 5:
-                if (this.c5 === undefined) {
-                    this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ, this.xHigh, this.yLow + this.midY, this.zHigh)
-                    this.nodeCount += 1
-                }
-                if (!this.c5.isLeafNode) {
-                    this.c5.addCoordinate(point)
-                }
-            case 6:
-                if (this.c6 === undefined) {
-                    this.c6 = new Octree(this.xLow, this.midY, this.midZ, this.xLow + this.midX, this.yHigh, this.zHigh)
-                    this.nodeCount += 1
-                }
-                if (!this.c6.isLeafNode) {
-                    this.c6.addCoordinate(point)
-                }
-            case 7:
-                if (this.c7 === undefined) {
-                    this.c7 = new Octree(this.midX, this.midY, this.zLow, this.xHigh, this.yHigh, this.zHigh)
-                    this.nodeCount += 1
-                }
-                if (!this.c7.isLeafNode) {
-                    this.c7.addCoordinate(point)
-                }
+        let Quadrant = this.getOctant(point)
+        // console.log("This is a leaf node: " + this.isLeafNode)
+        console.log(Quadrant)
+        if (Quadrant === -1) {
+            // console.log("No Quadrient")
+            return;
+        } else if (Quadrant === 0) {
+            if (this.c0 === undefined) {
+                this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ)
+                this.nodeCount += 1
+            }
+            // console.log("Is C0 leaf node: " + this.c0.isLeafNode)
+            if (!this.c0.isLeafNode) {
+                this.c0.addCoordinate(point)
+            }
+            return;
+        } else if (Quadrant === 1) {
+            if (this.c1 === undefined) {
+                this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY, this.zLow + this.midZ)
+                this.nodeCount += 1
+            }
+            // console.log("Is C1 leaf node: " + this.c1.isLeafNode)
+            if (!this.c1.isLeafNode) {
+                // console.log("Calling add coordinate c1")
+                this.c1.addCoordinate(point)
+            }
+            return;
+        } else if (Quadrant === 2) {
+            if (this.c2 === undefined) {
+                this.c2 = new Octree(this.xLow, this.midY, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ)
+                this.nodeCount += 1
+            }
+            if (!this.c2.isLeafNode) {
+                // console.log("Calling add coordinate c2")
+                this.c2.addCoordinate(point)
+            }
+
+        } else if (Quadrant === 3) {
+            if (this.c3 === undefined) {
+                this.c3 = new Octree(this.midX, this.midY, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ)
+                this.nodeCount += 1
+            }
+            if (!this.c3.isLeafNode) {
+                this.c3.addCoordinate(point)
+            }
+        } else if (Quadrant === 4) {
+            if (this.c4 === undefined) {
+                this.c4 = new Octree(this.xLow, this.yLow, this.midZ, this.xLow + this.midX, this.yLow + this.midY, this.zHigh)
+                this.nodeCount += 1
+            }
+            if (!this.c4.isLeafNode) {
+                this.c4.addCoordinate(point)
+            }
+        } else if (Quadrant === 5) {
+            if (this.c5 === undefined) {
+                this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ, this.xHigh, this.yLow + this.midY, this.zHigh)
+                this.nodeCount += 1
+            }
+            if (!this.c5.isLeafNode) {
+                this.c5.addCoordinate(point)
+            }
+        } else if (Quadrant === 6) {
+            if (this.c6 === undefined) {
+                this.c6 = new Octree(this.xLow, this.midY, this.midZ, this.xLow + this.midX, this.yHigh, this.zHigh)
+                this.nodeCount += 1
+            }
+            if (!this.c6.isLeafNode) {
+                this.c6.addCoordinate(point)
+            }
+        } else if (Quadrant === 7) {
+            if (this.c7 === undefined) {
+                this.c7 = new Octree(this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.xHigh, this.yHigh, this.zHigh)
+                this.nodeCount += 1
+            }
+            if (!this.c7.isLeafNode) {
+                this.c7.addCoordinate(point)
+            }
         }
     }
 }
