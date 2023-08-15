@@ -144,12 +144,10 @@ export class Octree<E extends Comparable<E>> {
         // console.log("Point: " + point.toPrint())
         // console.log("Quadrant: " + Quadrant)
         // console.log("Is termination node")
-        // console.log(Math.abs(this.yHigh - this.yLow) === 1 && Math.abs(this.xHigh - this.xLow) === 1 && Math.abs(this.zHigh - this.zLow) === 1)
-        // console.log("This is a leaf node: " + this.isLeafNode)
-        // console.log(Math.abs(this.yHigh - this.yLow) === this.unitLength && Math.abs(this.xHigh - this.xLow) === this.unitLength && Math.abs(this.zHigh - this.zLow) === this.unitLength)
+        // console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow))
         if (Math.abs(this.yHigh - this.yLow) === this.unitLength && Math.abs(this.xHigh - this.xLow) === this.unitLength && Math.abs(this.zHigh - this.zLow) === this.unitLength) {
             if (Quadrant === -1) {
-                console.log("No Quadrient")
+                // console.log("No Quadrient")
                 return;
             } if (Quadrant === 0 && this.c0 === undefined) {
                 this.c0 = new OctreeLeaf<E>(value)
@@ -193,27 +191,27 @@ export class Octree<E extends Comparable<E>> {
             (this.c1 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 2) {
             if (this.c2 === undefined) {
-                this.c2 = new Octree(this.xLow, this.midY, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ, this.unitLength)
+                this.c2 = new Octree(this.xLow, this.midY + this.yLow, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ, this.unitLength)
             }
             (this.c2 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 3) {
             if (this.c3 === undefined) {
-                this.c3 = new Octree(this.midX, this.midY, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ, this.unitLength)
+                this.c3 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ, this.unitLength)
             }
             (this.c3 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 4) {
             if (this.c4 === undefined) {
-                this.c4 = new Octree(this.xLow, this.yLow, this.midZ, this.xLow + this.midX, this.yLow + this.midY, this.zHigh, this.unitLength)
+                this.c4 = new Octree(this.xLow, this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zHigh, this.unitLength)
             }
             (this.c4 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 5) {
             if (this.c5 === undefined) {
-                this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ, this.xHigh, this.yLow + this.midY, this.zHigh, this.unitLength)
+                this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ + this.zLow, this.xHigh, this.yLow + this.midY, this.zHigh, this.unitLength)
             }
             (this.c5 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 6) {
             if (this.c6 === undefined) {
-                this.c6 = new Octree(this.xLow, this.midY, this.midZ, this.xLow + this.midX, this.yHigh, this.zHigh, this.unitLength)
+                this.c6 = new Octree(this.xLow, this.midY + this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yHigh, this.zHigh, this.unitLength)
             }
             (this.c6 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 7) {

@@ -1,15 +1,25 @@
 import { Point3D } from "../voxel3d/JavaScript/Point3D.js"
 import { Octree } from "../voxel3d/JavaScript/Storage/Octree/Octree.js"
 
-let tree = new Octree(0, 0, 0, 32, 32, 32, 1)
 
-// tree.addCoordinate(new Point3D(0, 0, 0))
+// tree.addCoordinate(new Point3D(0, 32, 0))
 // tree.addCoordinate(new Point3D(1, 1, 1))
 
-for (let i = 0; i < 32; i++) {
-    console.log(i,i,i)
-    tree.addCoordinate(new Point3D(i, i, i))
+const x = 10
+// for (let x = 0; x < 16; x++) {
+let tree = new Octree(0, 0, 0, Math.pow(2, x), Math.pow(2, x), Math.pow(2, x), 1)
+const startTime = new Date().getTime()
+for (let i = 0; i < Math.pow(2, x); i++) {
+    for (let j = 0; j < Math.pow(2, x); j++) {
+        const endTime = new Date().getTime()
+        console.log("--> " + tree.nodeCount + ": " + (endTime - startTime) / 1000)
+        for (let k = 0; k < Math.pow(2, x); k++) {
+            tree.addCoordinate(new Point3D(i, j, k), undefined)
+        }
+    }
 }
+console.log(Math.pow(2, x) + ": " + (endTime - startTime) / 1000 + " | " + (Math.pow(Math.pow(2, x), 3)))
+// }
 
-console.log(JSON.stringify(tree, null, 4))
+
 // console.log(tree.hasCoordinate(new Point3D(3, 3, 3)))
