@@ -1,11 +1,14 @@
 export class OctreeLeaf {
     value;
+    isLeafNode = true;
     constructor(value) {
         this.value = value;
     }
 }
 export class Octree {
     unitLength;
+    isLeafNode = false;
+    value;
     xLow;
     yLow;
     zLow;
@@ -141,8 +144,97 @@ export class Octree {
     //             return false
     //     }
     // }
+    compressNode() {
+        if (this.c0 instanceof Octree) {
+            this.c0.compressNode();
+        }
+        if (this.c1 instanceof Octree) {
+            this.c1.compressNode();
+        }
+        if (this.c2 instanceof Octree) {
+            this.c2.compressNode();
+        }
+        if (this.c3 instanceof Octree) {
+            this.c3.compressNode();
+        }
+        if (this.c4 instanceof Octree) {
+            this.c4.compressNode();
+        }
+        if (this.c5 instanceof Octree) {
+            this.c5.compressNode();
+        }
+        if (this.c6 instanceof Octree) {
+            this.c6.compressNode();
+        }
+        if (this.c7 instanceof Octree) {
+            this.c7.compressNode();
+        }
+        console.log("Compressing");
+        let sectors = [this.c0, this.c1, this.c2, this.c3, this.c4, this.c5, this.c6, this.c7];
+        let canBeCompressed = true;
+        for (let sector of sectors) {
+            if (sector === undefined || sector.value === undefined) {
+                canBeCompressed = false;
+                break;
+            }
+        }
+        console.log("Can be compressed Initial: " + canBeCompressed);
+        if (canBeCompressed) {
+            let compressedValue = this.c0.value;
+            for (let sector of sectors) {
+                if (sector.value.compareTo(compressedValue) !== 0) {
+                    canBeCompressed = false;
+                    break;
+                }
+            }
+        }
+        console.log("Can be compressed: " + canBeCompressed);
+        if (canBeCompressed) {
+            this.value = this.c0.value;
+            this.isLeafNode = true;
+            this.c0 = undefined;
+            this.c1 = undefined;
+            this.c2 = undefined;
+            this.c3 = undefined;
+            this.c4 = undefined;
+            this.c5 = undefined;
+            this.c6 = undefined;
+            this.c7 = undefined;
+        }
+    }
+    decompressNode() {
+        this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.unitLength);
+        this.c0.value = this.value;
+        this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY, this.zLow + this.midZ, this.unitLength);
+        this.c1.value = this.value;
+        this.c2 = new Octree(this.xLow, this.midY + this.yLow, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ, this.unitLength);
+        this.c2.value = this.value;
+        this.c3 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ, this.unitLength);
+        this.c3.value = this.value;
+        this.c4 = new Octree(this.xLow, this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zHigh, this.unitLength);
+        this.c4.value = this.value;
+        this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ + this.zLow, this.xHigh, this.yLow + this.midY, this.zHigh, this.unitLength);
+        this.c5.value = this.value;
+        this.c6 = new Octree(this.xLow, this.midY + this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yHigh, this.zHigh, this.unitLength);
+        this.c6.value = this.value;
+        this.c7 = new Octree(this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.xHigh, this.yHigh, this.zHigh, this.unitLength);
+        this.c7.value = this.value;
+        this.isLeafNode = false;
+        this.value = undefined;
+        this.c0.isLeafNode = true;
+        this.c1.isLeafNode = true;
+        this.c2.isLeafNode = true;
+        this.c3.isLeafNode = true;
+        this.c4.isLeafNode = true;
+        this.c5.isLeafNode = true;
+        this.c6.isLeafNode = true;
+        this.c7.isLeafNode = true;
+    }
     addCoordinate(point, value) {
         // Find which octant this point falls in
+        if (this.isLeafNode && this.value.compareTo(value) !== 0) {
+            this.decompressNode();
+        }
         let Quadrant = this.getOctant(point);
         // console.log("Point: " + point.toPrint())
         // console.log("Quadrant: " + Quadrant)
