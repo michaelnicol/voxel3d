@@ -67,8 +67,8 @@ export class Octree {
      */
     constructor(xLow, yLow, zLow, xHigh, yHigh, zHigh, unitLength) {
         this.unitLength = unitLength;
-        // console.log("\nCreating")
-        // console.log(xLow, yLow, zLow, xHigh, yHigh, zHigh)
+        console.log("\nCreating");
+        console.log(xLow, yLow, zLow, xHigh, yHigh, zHigh);
         this.xLow = xLow;
         this.yLow = yLow;
         this.zLow = zLow;
@@ -82,10 +82,10 @@ export class Octree {
         this.midX = this.midX < unitLength ? 0 : this.midX;
         this.midY = this.midY < unitLength ? 0 : this.midY;
         this.midZ = this.midZ < unitLength ? 0 : this.midZ;
-        // console.log("Mid")
-        // console.log(this.midX, this.midY, this.midZ)
-        // console.log("Lengths")
-        // console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow))
+        console.log("Mid");
+        console.log(this.midX, this.midY, this.midZ);
+        console.log("Lengths");
+        console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow));
     }
     getOctant(point) {
         const { arr } = point;
@@ -236,8 +236,8 @@ export class Octree {
             this.decompressNode();
         }
         let Quadrant = this.getOctant(point);
-        // console.log("Point: " + point.toPrint())
-        // console.log("Quadrant: " + Quadrant)
+        console.log("Point: " + point.toPrint());
+        console.log("Quadrant: " + Quadrant);
         // console.log("Is termination node")
         // console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow))
         if (Math.abs(this.yHigh - this.yLow) === this.unitLength && Math.abs(this.xHigh - this.xLow) === this.unitLength && Math.abs(this.zHigh - this.zLow) === this.unitLength) {
@@ -285,49 +285,53 @@ export class Octree {
         }
         else if (Quadrant === 0) {
             if (this.c0 === undefined) {
-                this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.unitLength);
+                this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX - this.unitLength, this.yLow + this.midY - this.unitLength, this.zLow + this.midZ - this.unitLength, this.unitLength);
             }
             this.c0.addCoordinate(point, value);
         }
         else if (Quadrant === 1) {
             if (this.c1 === undefined) {
-                this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY, this.zLow + this.midZ, this.unitLength);
+                // Shift one over to the right on the x-axis
+                this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY - this.unitLength, this.zLow + this.midZ - this.unitLength, this.unitLength);
             }
             this.c1.addCoordinate(point, value);
         }
         else if (Quadrant === 2) {
             if (this.c2 === undefined) {
-                this.c2 = new Octree(this.xLow, this.midY + this.yLow, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ, this.unitLength);
+                // Shift one up on the y-axis.
+                this.c2 = new Octree(this.xLow, this.midY + this.yLow, this.zLow, this.xLow + this.midX - this.unitLength, this.yHigh, this.zLow + this.midZ - this.unitLength, this.unitLength);
             }
             this.c2.addCoordinate(point, value);
         }
         else if (Quadrant === 3) {
             if (this.c3 === undefined) {
-                this.c3 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ, this.unitLength);
+                // shift on x and y axis
+                this.c3 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ - this.unitLength, this.unitLength);
             }
             this.c3.addCoordinate(point, value);
         }
         else if (Quadrant === 4) {
             if (this.c4 === undefined) {
-                this.c4 = new Octree(this.xLow, this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zHigh, this.unitLength);
+                // shift on z
+                this.c4 = new Octree(this.xLow, this.yLow, this.zLow + this.midZ, this.xLow + this.midX - this.unitLength, this.yLow + this.midY - this.unitLength, this.zLow + this.midZ - this.unitLength, this.unitLength);
             }
             this.c4.addCoordinate(point, value);
         }
         else if (Quadrant === 5) {
             if (this.c5 === undefined) {
-                this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ + this.zLow, this.xHigh, this.yLow + this.midY, this.zHigh, this.unitLength);
+                this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.zLow + this.midZ, this.xHigh, this.yLow + this.midY - this.unitLength, this.zHigh, this.unitLength);
             }
             this.c5.addCoordinate(point, value);
         }
         else if (Quadrant === 6) {
             if (this.c6 === undefined) {
-                this.c6 = new Octree(this.xLow, this.midY + this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yHigh, this.zHigh, this.unitLength);
+                this.c6 = new Octree(this.xLow, this.midY + this.yLow, this.zLow + this.midZ, this.xLow + this.midX - this.unitLength, this.yHigh, this.zHigh, this.unitLength);
             }
             this.c6.addCoordinate(point, value);
         }
         else if (Quadrant === 7) {
             if (this.c7 === undefined) {
-                this.c7 = new Octree(this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.xHigh, this.yHigh, this.zHigh, this.unitLength);
+                this.c7 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow + this.midZ, this.xHigh, this.yHigh, this.zHigh, this.unitLength);
             }
             this.c7.addCoordinate(point, value);
         }
