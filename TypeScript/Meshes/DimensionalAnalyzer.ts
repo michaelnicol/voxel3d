@@ -1,10 +1,10 @@
-import { AVLTree } from "./Storage/AVLTree.js";
-import { Point } from "./Point.js";
-import { Point2D } from "./Point2D.js";
-import { PointFactoryMethods } from "./PointFactoryMethods.js";
-import { Utilities } from "./Utilities.js";
-import { TreeStorage } from "./Storage/TreeStorage/TreeStorage.js";
-import { TreeStorageNode } from "./Storage/TreeStorage/TreeStorageNode.js";
+import { AVLTree } from "../Storage/AVL/AVLTree.js";
+import { Point } from "../Points/Point.js";
+import { Point2D } from "../Points/Point2D.js";
+import { PointFactoryMethods } from "../Points/PointFactoryMethods.js";
+import { Utilities } from "../Utilites/Utilities.js";
+import { TreeStorage } from "../Storage/TreeStorage/TreeStorage.js";
+import { TreeStorageNode } from "../Storage/TreeStorage/TreeStorageNode.js";
 
 /**
  * The DimensionalAnalyzer Map is designed to analyze the dimension ranges of an TreeStorage and group stored coordinates. This grouping will compact and project the TreeStorage tree down by one dimension.

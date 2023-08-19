@@ -1,5 +1,5 @@
-import { Comparator } from "../Comparator.js";
-import { ValidObject } from "../ValidObject.js";
+import { Comparator } from "../../Interfaces/Comparator.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
 import { AVLTreeNode } from "./AVLTreeNode.js";
 /**
  * Defines a new AVL Tree for any Valid Objects

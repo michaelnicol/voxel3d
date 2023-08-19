@@ -1,4 +1,4 @@
-import { ValidObject} from "./ValidObject.js"
+import { ValidObject} from "../Meshes/ValidObject.js"
 
 export class NumberWrapper implements ValidObject {
    data: number;

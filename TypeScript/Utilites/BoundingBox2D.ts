@@ -1,7 +1,7 @@
-import { Point2D } from "./Point2D.js";
+import { Point2D } from "../Points/Point2D.js";
 import { Utilities } from "./Utilities.js";
-import { ValidObject } from "./ValidObject.js";
-import { cloneable } from "./cloneable.js";
+import { ValidObject } from "../Meshes/ValidObject.js";
+import { cloneable } from "../Interfaces/cloneable.js";
 
 export class BoundingBox2D implements ValidObject, cloneable<BoundingBox2D> {
    /**

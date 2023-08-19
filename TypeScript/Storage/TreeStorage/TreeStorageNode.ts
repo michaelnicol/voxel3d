@@ -1,9 +1,9 @@
-import { ValidObject } from "../../ValidObject.js";
-import { AVLTree } from "../AVLTree.js";
-import { AVLTreeNode } from "../AVLTreeNode.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
+import { AVLTree } from "../AVL/AVLTree.js";
+import { AVLTreeNode } from "../AVL/AVLTreeNode.js";
 import { TreeStorageNodeComparator } from "./TreeStorageNodeComparator.js";
-import { Point } from "../../Point.js";
-import { cloneable } from "../../cloneable.js";
+import { Point } from "../../Points/Point.js";
+import { cloneable } from "../../Interfaces/cloneable.js";
 
 export class TreeStorageNode implements ValidObject {
    coordinateDate: number = 0;

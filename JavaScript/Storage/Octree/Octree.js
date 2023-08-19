@@ -51,6 +51,7 @@ export class Octree {
      * xHigh, yHigh, zHigh
      */
     c7;
+    quadCount = 0;
     nodeCount = 0;
     /**
      * Creates an octree of a given volume.
@@ -135,31 +136,35 @@ export class Octree {
             return -1;
         }
     }
-    // hasCoordinate(point: Point3D): boolean {
-    //     switch (this.getOctant(point)) {
-    //         case -1:
-    //             return false;
-    //         case 0:
-    //             return this.c0 === undefined ? false : this.c0.isLeafNode ? true : this.c0.hasCoordinate(point)
-    //         case 1:
-    //             return this.c1 === undefined ? false : this.c1.isLeafNode ? true : this.c1.hasCoordinate(point)
-    //         case 2:
-    //             return this.c2 === undefined ? false : this.c2.isLeafNode ? true : this.c2.hasCoordinate(point)
-    //         case 3:
-    //             return this.c3 === undefined ? false : this.c3.isLeafNode ? true : this.c3.hasCoordinate(point)
-    //         case 4:
-    //             return this.c4 === undefined ? false : this.c4.isLeafNode ? true : this.c4.hasCoordinate(point)
-    //         case 5:
-    //             return this.c5 === undefined ? false : this.c5.isLeafNode ? true : this.c5.hasCoordinate(point)
-    //         case 6:
-    //             return this.c6 === undefined ? false : this.c6.isLeafNode ? true : this.c6.hasCoordinate(point)
-    //         case 7:
-    //             return this.c7 === undefined ? false : this.c7.isLeafNode ? true : this.c7.hasCoordinate(point)
-    //         default:
-    //             return false
-    //     }
-    // }
+    hasCoordinate(point) {
+        switch (this.getOctant(point)) {
+            case -1:
+                return false;
+            case 0:
+                return this.c0 === undefined ? false : this.c0.isLeafNode ? true : this.c0.hasCoordinate(point);
+            case 1:
+                return this.c1 === undefined ? false : this.c1.isLeafNode ? true : this.c1.hasCoordinate(point);
+            case 2:
+                return this.c2 === undefined ? false : this.c2.isLeafNode ? true : this.c2.hasCoordinate(point);
+            case 3:
+                return this.c3 === undefined ? false : this.c3.isLeafNode ? true : this.c3.hasCoordinate(point);
+            case 4:
+                return this.c4 === undefined ? false : this.c4.isLeafNode ? true : this.c4.hasCoordinate(point);
+            case 5:
+                return this.c5 === undefined ? false : this.c5.isLeafNode ? true : this.c5.hasCoordinate(point);
+            case 6:
+                return this.c6 === undefined ? false : this.c6.isLeafNode ? true : this.c6.hasCoordinate(point);
+            case 7:
+                return this.c7 === undefined ? false : this.c7.isLeafNode ? true : this.c7.hasCoordinate(point);
+            default:
+                return false;
+        }
+    }
     compressNode() {
+        if (this.quadCount !== 8) {
+            // console.log("Not enough quads")
+            return;
+        }
         // if (this.c0 instanceof Octree) {
         //     this.c0.compressNode()
         // }
@@ -187,11 +192,12 @@ export class Octree {
         let sectors = [this.c0, this.c1, this.c2, this.c3, this.c4, this.c5, this.c6, this.c7];
         let canBeCompressed = true;
         for (let sector of sectors) {
-            if (sector === undefined || sector.value === undefined || !sector.isLeafNode) {
+            if (sector.value === undefined || !sector.isLeafNode) {
                 canBeCompressed = false;
                 break;
             }
         }
+        // console.log(canBeCompressed)
         if (canBeCompressed) {
             let compressedValue = this.c0.value;
             for (let sector of sectors) {
@@ -212,6 +218,7 @@ export class Octree {
             this.c5 = undefined;
             this.c6 = undefined;
             this.c7 = undefined;
+            this.quadCount = 0;
         }
         this.parent?.compressNode();
     }
@@ -242,6 +249,7 @@ export class Octree {
         this.c5.isLeafNode = true;
         this.c6.isLeafNode = true;
         this.c7.isLeafNode = true;
+        this.quadCount = 8;
     }
     addCoordinate(point, value) {
         // Find which octant this point falls in
@@ -258,45 +266,55 @@ export class Octree {
             }
             if (Quadrant === 0 && this.c0 === undefined) {
                 this.c0 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 1 && this.c1 === undefined) {
                 this.c1 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 2 && this.c2 === undefined) {
                 this.c2 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 3 && this.c3 === undefined) {
                 this.c3 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 4 && this.c4 === undefined) {
                 this.c4 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 5 && this.c5 === undefined) {
                 this.c5 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 6 && this.c6 === undefined) {
                 this.c6 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
             else if (Quadrant === 7 && this.c7 === undefined) {
                 this.c7 = new OctreeLeaf(value);
+                this.quadCount += 1;
                 this.nodeCount += 1;
             }
+            this.compressNode();
             return;
         }
         if (Quadrant === -1) {
-            // console.log("No Quadrient")
+            console.error("No Quad");
             return;
         }
         else if (Quadrant === 0) {
             if (this.c0 === undefined) {
                 this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX - this.unitLength, this.yLow + this.midY - this.unitLength, this.zLow + this.midZ - this.unitLength, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c0.addCoordinate(point, value);
         }
@@ -304,6 +322,7 @@ export class Octree {
             if (this.c1 === undefined) {
                 // Shift one over to the right on the x-axis
                 this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY - this.unitLength, this.zLow + this.midZ - this.unitLength, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c1.addCoordinate(point, value);
         }
@@ -311,6 +330,7 @@ export class Octree {
             if (this.c2 === undefined) {
                 // Shift one up on the y-axis.
                 this.c2 = new Octree(this.xLow, this.midY + this.yLow, this.zLow, this.xLow + this.midX - this.unitLength, this.yHigh, this.zLow + this.midZ - this.unitLength, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c2.addCoordinate(point, value);
         }
@@ -318,6 +338,7 @@ export class Octree {
             if (this.c3 === undefined) {
                 // shift on x and y axis
                 this.c3 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ - this.unitLength, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c3.addCoordinate(point, value);
         }
@@ -325,27 +346,32 @@ export class Octree {
             if (this.c4 === undefined) {
                 // shift on z
                 this.c4 = new Octree(this.xLow, this.yLow, this.zLow + this.midZ, this.xLow + this.midX - this.unitLength, this.yLow + this.midY - this.unitLength, this.zHigh, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c4.addCoordinate(point, value);
         }
         else if (Quadrant === 5) {
             if (this.c5 === undefined) {
                 this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.zLow + this.midZ, this.xHigh, this.yLow + this.midY - this.unitLength, this.zHigh, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c5.addCoordinate(point, value);
         }
         else if (Quadrant === 6) {
             if (this.c6 === undefined) {
                 this.c6 = new Octree(this.xLow, this.midY + this.yLow, this.zLow + this.midZ, this.xLow + this.midX - this.unitLength, this.yHigh, this.zHigh, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c6.addCoordinate(point, value);
         }
         else if (Quadrant === 7) {
             if (this.c7 === undefined) {
                 this.c7 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow + this.midZ, this.xHigh, this.yHigh, this.zHigh, this.unitLength, this);
+                this.quadCount += 1;
             }
             this.c7.addCoordinate(point, value);
         }
+        // console.log("Running compress node")
         this.compressNode();
         this.nodeCount += 1;
     }

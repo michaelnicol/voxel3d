@@ -1,4 +1,4 @@
-import { ValidObject } from "../ValidObject.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
 
 // import { ValidObject } from "../../"
 export class AVLTreeNode<E extends ValidObject> implements ValidObject {

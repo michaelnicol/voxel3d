@@ -1,6 +1,6 @@
-import { Comparator } from "../../Comparator.js"
-import { ValidObject } from "../../ValidObject.js";
-import { cloneable } from "../../cloneable.js";
+import { Comparator } from "../../Interfaces/Comparator.js"
+import { ValidObject } from "../../Meshes/ValidObject.js";
+import { cloneable } from "../../Interfaces/cloneable.js";
 import { TreeStorageNode } from "./TreeStorageNode.js";
 
 

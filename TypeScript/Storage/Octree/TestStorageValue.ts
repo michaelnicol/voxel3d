@@ -1,4 +1,4 @@
-import { Comparable } from "../../Comparable.js";
+import { Comparable } from "../../Interfaces/Comparable.js";
 
 export class TestStorageValue implements Comparable<TestStorageValue> {
     value!: number;

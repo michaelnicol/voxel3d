@@ -1,10 +1,10 @@
-import { Point } from "./Point.js";
-import { HashStorage } from "./Storage/HashStorage/HashStorage.js";
-import { TreeStorage } from "./Storage/TreeStorage/TreeStorage.js";
-import { Point2D } from "./Point2D.js";
-import { Point3D } from "./Point3D.js";
-import { DimensionalAnalyzer } from "./DimensionalAnalyzer.js";
-import { PointFactoryMethods } from "./PointFactoryMethods.js";
+import { Point } from "../Points/Point.js";
+import { HashStorage } from "../Storage/HashStorage/HashStorage.js";
+import { TreeStorage } from "../Storage/TreeStorage/TreeStorage.js";
+import { Point2D } from "../Points/Point2D.js";
+import { Point3D } from "../Points/Point3D.js";
+import { DimensionalAnalyzer } from "../Meshes/DimensionalAnalyzer.js";
+import { PointFactoryMethods } from "../Points/PointFactoryMethods.js";
 import { BoundingBox2D } from "./BoundingBox2D.js";
 
 export type ConvexHull = Point2D[]

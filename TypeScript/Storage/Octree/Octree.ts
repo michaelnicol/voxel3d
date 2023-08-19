@@ -1,9 +1,11 @@
-import { Comparable } from "../../Comparable.js";
-import { Point3D } from "../../Point3D.js";
-import { ValidObject } from "../../ValidObject.js";
+import { Comparable } from "../../Interfaces/Comparable.js";
+import { Point3D } from "../../Points/Point3D.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
+
+export type OctreeNoneValue = 0
 
 export class OctreeLeaf<E extends Comparable<E>> {
-    value!: E
+    value!: E | OctreeNoneValue
     isLeafNode: boolean = true
     constructor(value: E) {
         this.value = value;
@@ -13,7 +15,7 @@ export class OctreeLeaf<E extends Comparable<E>> {
 export class Octree<E extends Comparable<E>> {
     unitLength!: number;
     isLeafNode: boolean = false
-    value: E | undefined
+    value: E | undefined | OctreeNoneValue
     xLow!: number;
     yLow!: number;
     zLow!: number;
@@ -56,6 +58,7 @@ export class Octree<E extends Comparable<E>> {
      * xHigh, yHigh, zHigh
      */
     c7: Octree<E> | OctreeLeaf<E> | undefined
+    quadCount: number = 0
     nodeCount: number = 0
     /**
      * Creates an octree of a given volume.
@@ -132,31 +135,35 @@ export class Octree<E extends Comparable<E>> {
             return -1
         }
     }
-    // hasCoordinate(point: Point3D): boolean {
-    //     switch (this.getOctant(point)) {
-    //         case -1:
-    //             return false;
-    //         case 0:
-    //             return this.c0 === undefined ? false : this.c0.isLeafNode ? true : this.c0.hasCoordinate(point)
-    //         case 1:
-    //             return this.c1 === undefined ? false : this.c1.isLeafNode ? true : this.c1.hasCoordinate(point)
-    //         case 2:
-    //             return this.c2 === undefined ? false : this.c2.isLeafNode ? true : this.c2.hasCoordinate(point)
-    //         case 3:
-    //             return this.c3 === undefined ? false : this.c3.isLeafNode ? true : this.c3.hasCoordinate(point)
-    //         case 4:
-    //             return this.c4 === undefined ? false : this.c4.isLeafNode ? true : this.c4.hasCoordinate(point)
-    //         case 5:
-    //             return this.c5 === undefined ? false : this.c5.isLeafNode ? true : this.c5.hasCoordinate(point)
-    //         case 6:
-    //             return this.c6 === undefined ? false : this.c6.isLeafNode ? true : this.c6.hasCoordinate(point)
-    //         case 7:
-    //             return this.c7 === undefined ? false : this.c7.isLeafNode ? true : this.c7.hasCoordinate(point)
-    //         default:
-    //             return false
-    //     }
-    // }
+    hasCoordinate(point: Point3D): boolean {
+        switch (this.getOctant(point)) {
+            case -1:
+                return false;
+            case 0:
+                return this.c0 === undefined ? false : this.c0.isLeafNode ? true : (this.c0 as Octree<E>).hasCoordinate(point)
+            case 1:
+                return this.c1 === undefined ? false : this.c1.isLeafNode ? true : (this.c1 as Octree<E>).hasCoordinate(point)
+            case 2:
+                return this.c2 === undefined ? false : this.c2.isLeafNode ? true : (this.c2 as Octree<E>).hasCoordinate(point)
+            case 3:
+                return this.c3 === undefined ? false : this.c3.isLeafNode ? true : (this.c3 as Octree<E>).hasCoordinate(point)
+            case 4:
+                return this.c4 === undefined ? false : this.c4.isLeafNode ? true : (this.c4 as Octree<E>).hasCoordinate(point)
+            case 5:
+                return this.c5 === undefined ? false : this.c5.isLeafNode ? true : (this.c5 as Octree<E>).hasCoordinate(point)
+            case 6:
+                return this.c6 === undefined ? false : this.c6.isLeafNode ? true : (this.c6 as Octree<E>).hasCoordinate(point)
+            case 7:
+                return this.c7 === undefined ? false : this.c7.isLeafNode ? true : (this.c7 as Octree<E>).hasCoordinate(point)
+            default:
+                return false
+        }
+    }
     compressNode(): void {
+        if (this.quadCount !== 8) {
+            // console.log("Not enough quads")
+            return;
+        }
         // if (this.c0 instanceof Octree) {
         //     this.c0.compressNode()
         // }
@@ -182,13 +189,15 @@ export class Octree<E extends Comparable<E>> {
         //     this.c7.compressNode()
         // }
         let sectors = [this.c0, this.c1, this.c2, this.c3, this.c4, this.c5, this.c6, this.c7]
+
         let canBeCompressed: boolean = true
         for (let sector of sectors) {
-            if (sector === undefined || sector.value === undefined || !sector.isLeafNode) {
+            if ((sector as Octree<E> | OctreeLeaf<E>).value === undefined || !(sector as Octree<E> | OctreeLeaf<E>).isLeafNode) {
                 canBeCompressed = false
                 break;
             }
         }
+        // console.log(canBeCompressed)
         if (canBeCompressed) {
             let compressedValue: E = (this.c0 as Octree<E> | OctreeLeaf<E>).value as E
             for (let sector of sectors) {
@@ -209,6 +218,7 @@ export class Octree<E extends Comparable<E>> {
             this.c5 = undefined
             this.c6 = undefined
             this.c7 = undefined
+            this.quadCount = 0
         }
         this.parent?.compressNode()
     }
@@ -304,6 +314,7 @@ export class Octree<E extends Comparable<E>> {
         this.c5.isLeafNode = true
         this.c6.isLeafNode = true
         this.c7.isLeafNode = true
+        this.quadCount = 8
     }
     addCoordinate(point: Point3D, value: E): void {
         // Find which octant this point falls in
@@ -319,33 +330,42 @@ export class Octree<E extends Comparable<E>> {
                 return;
             } if (Quadrant === 0 && this.c0 === undefined) {
                 this.c0 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 1 && this.c1 === undefined) {
                 this.c1 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 2 && this.c2 === undefined) {
                 this.c2 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 3 && this.c3 === undefined) {
                 this.c3 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 4 && this.c4 === undefined) {
                 this.c4 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 5 && this.c5 === undefined) {
                 this.c5 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 6 && this.c6 === undefined) {
                 this.c6 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             } else if (Quadrant === 7 && this.c7 === undefined) {
                 this.c7 = new OctreeLeaf<E>(value)
+                this.quadCount += 1;
                 this.nodeCount += 1
             }
+            this.compressNode()
             return;
         }
         if (Quadrant === -1) {
-            // console.log("No Quadrient")
+            console.error("No Quad")
             return;
         } else if (Quadrant === 0) {
             if (this.c0 === undefined) {
@@ -357,6 +377,7 @@ export class Octree<E extends Comparable<E>> {
                     this.yLow + this.midY - this.unitLength,
                     this.zLow + this.midZ - this.unitLength,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c0 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 1) {
@@ -370,6 +391,7 @@ export class Octree<E extends Comparable<E>> {
                     this.yLow + this.midY - this.unitLength,
                     this.zLow + this.midZ - this.unitLength,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c1 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 2) {
@@ -383,6 +405,7 @@ export class Octree<E extends Comparable<E>> {
                     this.yHigh,
                     this.zLow + this.midZ - this.unitLength,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c2 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 3) {
@@ -397,6 +420,7 @@ export class Octree<E extends Comparable<E>> {
                     this.zLow + this.midZ - this.unitLength,
                     this.unitLength, this
                 )
+                this.quadCount += 1;
             }
             (this.c3 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 4) {
@@ -410,6 +434,7 @@ export class Octree<E extends Comparable<E>> {
                     this.yLow + this.midY - this.unitLength,
                     this.zHigh,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c4 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 5) {
@@ -422,6 +447,7 @@ export class Octree<E extends Comparable<E>> {
                     this.yLow + this.midY - this.unitLength,
                     this.zHigh,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c5 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 6) {
@@ -434,6 +460,7 @@ export class Octree<E extends Comparable<E>> {
                     this.yHigh,
                     this.zHigh,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c6 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 7) {
@@ -446,9 +473,11 @@ export class Octree<E extends Comparable<E>> {
                     this.yHigh,
                     this.zHigh,
                     this.unitLength, this)
+                this.quadCount += 1;
             }
             (this.c7 as Octree<E>).addCoordinate(point, value)
         }
+        // console.log("Running compress node")
         this.compressNode()
         this.nodeCount += 1
     }

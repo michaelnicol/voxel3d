@@ -1,5 +1,5 @@
-import { Point } from "./Point.js";
-import { ValidObject } from "./ValidObject.js";
+import { Point } from "../../Points/Point.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
 
 export class HashStorageNode<E extends Point> implements ValidObject {
    hashMap: Map<number, HashStorageNode<E>> = new Map<number, HashStorageNode<E>>();

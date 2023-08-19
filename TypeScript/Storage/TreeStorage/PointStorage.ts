@@ -1,7 +1,7 @@
-import { Comparator } from "../Comparator.js";
-import { Point } from "../Point.js";
-import { ValidObject } from "../ValidObject.js";
-import { cloneable } from "../cloneable.js";
+import { Comparator } from "../../Interfaces/Comparator.js";
+import { Point } from "../../Points/Point.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
+import { cloneable } from "../../Interfaces/cloneable.js";
 
 export type DimensionalRanges = Map<number, number[]>
 

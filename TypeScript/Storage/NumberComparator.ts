@@ -1,4 +1,4 @@
-import { Comparator } from "./Comparator.js";
+import { Comparator } from "../Interfaces/Comparator.js";
 import {NumberWrapper } from "./NumberWrapper.js";
 
 export class NumberComparator implements Comparator<NumberWrapper> {

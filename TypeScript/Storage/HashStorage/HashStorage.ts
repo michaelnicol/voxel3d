@@ -1,8 +1,8 @@
-import { Point } from "../../Point.js";
-import { HashStorageNode } from "../../HashStorageNode.js";
-import { ValidObject } from "../../ValidObject.js";
-import { PointFactoryMethods } from "../../PointFactoryMethods.js";
-import { DimensionalRanges, PointStorage } from "../PointStorage.js";
+import { Point } from "../../Points/Point.js";
+import { HashStorageNode } from "./HashStorageNode.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
+import { PointFactoryMethods } from "../../Points/PointFactoryMethods.js";
+import { DimensionalRanges, PointStorage } from "../TreeStorage/PointStorage.js";
 
 export class HashStorage<E extends Point> implements PointStorage<E> {
    hashMap = new Map<number, HashStorageNode<E>>;

@@ -1,16 +1,16 @@
-import { AVLTreeNode } from "../AVLTreeNode.js";
-import { ValidObject } from "../../ValidObject.js";
+import { AVLTreeNode } from "../AVL/AVLTreeNode.js";
+import { ValidObject } from "../../Meshes/ValidObject.js";
 import { TreeStorageNode } from "./TreeStorageNode.js";
-import { Point } from "../../Point.js";
-import { AVLTree } from "../AVLTree.js";
+import { Point } from "../../Points/Point.js";
+import { AVLTree } from "../AVL/AVLTree.js";
 import { TreeStorageNodeComparator } from "./TreeStorageNodeComparator.js";
-import { Point3D } from "../../Point3D.js";
+import { Point3D } from "../../Points/Point3D.js";
 // import { BoundingBox3D } from "./BoundingBox3D.js";
-import { Utilities } from "../../Utilities.js";
-import { PointFactoryMethods } from "../../PointFactoryMethods.js";
-import { cloneable } from "../../cloneable.js";
-import { PointStorage } from "../PointStorage.js";
-import { DimensionalRanges } from "../PointStorage.js";
+import { Utilities } from "../../Utilites/Utilities.js";
+import { PointFactoryMethods } from "../../Points/PointFactoryMethods.js";
+import { cloneable } from "../../Interfaces/cloneable.js";
+import { PointStorage } from "./PointStorage.js";
+import { DimensionalRanges } from "./PointStorage.js";
 
 export class TreeStorage<E extends Point> implements PointStorage<E> {
    allCoordinateCount: number = 0;
