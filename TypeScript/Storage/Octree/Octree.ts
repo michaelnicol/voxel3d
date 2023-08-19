@@ -23,6 +23,7 @@ export class Octree<E extends Comparable<E>> {
     midX!: number;
     midY!: number;
     midZ!: number;
+    parent: Octree<E> | undefined;
     /**
      * xLow, yLow, zLow
      */
@@ -70,48 +71,62 @@ export class Octree<E extends Comparable<E>> {
      * @param yHigh 
      * @param zHigh 
      */
-    constructor(xLow: number, yLow: number, zLow: number, xHigh: number, yHigh: number, zHigh: number, unitLength: number) {
+    constructor(xLow: number, yLow: number, zLow: number, xHigh: number, yHigh: number, zHigh: number, unitLength: number, parent: Octree<E> | undefined) {
         this.unitLength = unitLength
-        console.log("\nCreating")
-        console.log(xLow, yLow, zLow, xHigh, yHigh, zHigh)
+        if (xLow > xHigh || yLow > yHigh || zLow > zHigh) {
+            throw new Error("")
+        }
         this.xLow = xLow
         this.yLow = yLow
         this.zLow = zLow
         this.xHigh = xHigh
         this.yHigh = yHigh
         this.zHigh = zHigh
-        this.midX = ((xHigh - xLow) / 2)
-        this.midY = ((yHigh - yLow) / 2)
-        this.midZ = ((zHigh - zLow) / 2)
+        this.midX = Math.ceil((xHigh - xLow) / 2)
+        this.midY = Math.ceil((yHigh - yLow) / 2)
+        this.midZ = Math.ceil((zHigh - zLow) / 2)
         // Snap to a unit length once it becomes less than the tesselation
         this.midX = this.midX < unitLength ? 0 : this.midX
         this.midY = this.midY < unitLength ? 0 : this.midY
         this.midZ = this.midZ < unitLength ? 0 : this.midZ
-        console.log("Mid")
-        console.log(this.midX, this.midY, this.midZ)
-        console.log("Lengths")
-        console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow))
+        this.parent = parent
     }
     getOctant(point: Point3D): number {
         const { arr } = point
         const x = arr[0]
         const y = arr[1]
         const z = arr[2]
-        if (x <= this.midX + this.xLow && y <= this.midY + this.yLow && z <= this.midZ + this.zLow) {
+        if (x <= this.xLow + this.midX - this.unitLength &&
+            y <= this.yLow + this.midY - this.unitLength &&
+            z <= this.zLow + this.midZ - this.unitLength) {
             return 0
-        } else if (x > this.midX + this.xLow && y <= this.midY + this.yLow && z <= this.midZ + this.zLow) {
+        } else if (x > this.xLow + this.midX - this.unitLength &&
+            y <= this.midY + this.yLow - this.unitLength &&
+            z <= this.midZ + this.zLow - this.unitLength) {
             return 1
-        } else if (x <= this.midX + this.xLow && y > this.midY + this.yLow && z <= this.midZ + this.zLow) {
+        } else if (x <= this.xLow + this.midX - this.unitLength &&
+            y > this.midY + this.yLow - this.unitLength &&
+            z <= this.midZ + this.zLow - this.unitLength) {
             return 2
-        } else if (x > this.midX + this.xLow && y > this.midY + this.yLow && z <= this.midZ + this.zLow) {
+        } else if (x > this.midX + this.xLow - this.unitLength &&
+            y > this.midY + this.yLow - this.unitLength &&
+            z <= this.midZ + this.zLow - this.unitLength) {
             return 3
-        } else if (x <= this.midX + this.xLow && y <= this.midY + this.yLow && z > this.midZ + this.zLow) {
+        } else if (x <= this.xLow + this.midX - this.unitLength &&
+            y <= this.yLow + this.midY - this.unitLength &&
+            z > this.zLow + this.midZ - this.unitLength) {
             return 4
-        } else if (x > this.midX + this.xLow && y <= this.midY + this.yLow && z > this.midZ + this.zLow) {
+        } else if (x > this.xLow + this.midX - this.unitLength &&
+            y <= this.midY + this.yLow - this.unitLength &&
+            z > this.midZ + this.zLow - this.unitLength) {
             return 5
-        } else if (x <= this.midX + this.xLow && y > this.midY + this.yLow && z > this.midZ + this.zLow) {
+        } else if (x <= this.xLow + this.midX - this.unitLength &&
+            y > this.midY + this.yLow - this.unitLength &&
+            z > this.midZ + this.zLow - this.unitLength) {
             return 6
-        } else if (x > this.midX + this.xLow && y > this.midY + this.yLow && z > this.midZ + this.zLow) {
+        } else if (x > this.midX + this.xLow - this.unitLength &&
+            y > this.midY + this.yLow - this.unitLength &&
+            z > this.midZ + this.zLow - this.unitLength) {
             return 7
         } else {
             return -1
@@ -142,40 +157,38 @@ export class Octree<E extends Comparable<E>> {
     //     }
     // }
     compressNode(): void {
-        if (this.c0 instanceof Octree) {
-            this.c0.compressNode()
-        }
-        if (this.c1 instanceof Octree) {
-            this.c1.compressNode()
-        }
-        if (this.c2 instanceof Octree) {
-            this.c2.compressNode()
-        }
-        if (this.c3 instanceof Octree) {
-            this.c3.compressNode()
-        }
-        if (this.c4 instanceof Octree) {
-            this.c4.compressNode()
-        }
-        if (this.c5 instanceof Octree) {
-            this.c5.compressNode()
-        }
-        if (this.c6 instanceof Octree) {
-            this.c6.compressNode()
-        }
-        if (this.c7 instanceof Octree) {
-            this.c7.compressNode()
-        }
-        console.log("Compressing")
+        // if (this.c0 instanceof Octree) {
+        //     this.c0.compressNode()
+        // }
+        // if (this.c1 instanceof Octree) {
+        //     this.c1.compressNode()
+        // }
+        // if (this.c2 instanceof Octree) {
+        //     this.c2.compressNode()
+        // }
+        // if (this.c3 instanceof Octree) {
+        //     this.c3.compressNode()
+        // }
+        // if (this.c4 instanceof Octree) {
+        //     this.c4.compressNode()
+        // }
+        // if (this.c5 instanceof Octree) {
+        //     this.c5.compressNode()
+        // }
+        // if (this.c6 instanceof Octree) {
+        //     this.c6.compressNode()
+        // }
+        // if (this.c7 instanceof Octree) {
+        //     this.c7.compressNode()
+        // }
         let sectors = [this.c0, this.c1, this.c2, this.c3, this.c4, this.c5, this.c6, this.c7]
         let canBeCompressed: boolean = true
         for (let sector of sectors) {
-            if (sector === undefined || sector.value === undefined) {
+            if (sector === undefined || sector.value === undefined || !sector.isLeafNode) {
                 canBeCompressed = false
                 break;
             }
         }
-        console.log("Can be compressed Initial: " + canBeCompressed)
         if (canBeCompressed) {
             let compressedValue: E = (this.c0 as Octree<E> | OctreeLeaf<E>).value as E
             for (let sector of sectors) {
@@ -185,7 +198,6 @@ export class Octree<E extends Comparable<E>> {
                 }
             }
         }
-        console.log("Can be compressed: " + canBeCompressed)
         if (canBeCompressed) {
             this.value = (this.c0 as Octree<E> | OctreeLeaf<E>).value as E
             this.isLeafNode = true
@@ -198,23 +210,89 @@ export class Octree<E extends Comparable<E>> {
             this.c6 = undefined
             this.c7 = undefined
         }
+        this.parent?.compressNode()
     }
     decompressNode() {
-        this.c0 = new Octree(this.xLow, this.yLow, this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.unitLength)
+        this.c0 = new Octree(
+            this.xLow,
+            this.yLow,
+            this.zLow,
+            this.xLow + this.midX - this.unitLength,
+            this.yLow + this.midY - this.unitLength,
+            this.zLow + this.midZ - this.unitLength,
+            this.unitLength,
+            this)
         this.c0.value = this.value
-        this.c1 = new Octree(this.xLow + this.midX, this.yLow, this.zLow, this.xHigh, this.yLow + this.midY, this.zLow + this.midZ, this.unitLength)
+        this.c1 = new Octree(
+            this.xLow + this.midX,
+            this.yLow,
+            this.zLow,
+            this.xHigh,
+            this.yLow + this.midY - this.unitLength,
+            this.zLow + this.midZ - this.unitLength,
+            this.unitLength,
+            this)
         this.c1.value = this.value
-        this.c2 = new Octree(this.xLow, this.midY + this.yLow, this.zLow, this.xLow + this.midX, this.yHigh, this.zLow + this.midZ, this.unitLength)
+        this.c2 = new Octree(
+            this.xLow,
+            this.midY + this.yLow,
+            this.zLow,
+            this.xLow + this.midX - this.unitLength,
+            this.yHigh,
+            this.zLow + this.midZ - this.unitLength,
+            this.unitLength,
+            this)
         this.c2.value = this.value
-        this.c3 = new Octree(this.midX + this.xLow, this.midY + this.yLow, this.zLow, this.xHigh, this.yHigh, this.zLow + this.midZ, this.unitLength)
+        this.c3 = new Octree(
+            this.midX + this.xLow,
+            this.midY + this.yLow,
+            this.zLow,
+            this.xHigh,
+            this.yHigh,
+            this.zLow + this.midZ - this.unitLength,
+            this.unitLength,
+            this
+        )
         this.c3.value = this.value
-        this.c4 = new Octree(this.xLow, this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yLow + this.midY, this.zHigh, this.unitLength)
+        this.c4 = new Octree(
+            this.xLow,
+            this.yLow,
+            this.zLow + this.midZ,
+            this.xLow + this.midX - this.unitLength,
+            this.yLow + this.midY - this.unitLength,
+            this.zHigh,
+            this.unitLength,
+            this)
         this.c4.value = this.value
-        this.c5 = new Octree(this.xLow + this.midX, this.yLow, this.midZ + this.zLow, this.xHigh, this.yLow + this.midY, this.zHigh, this.unitLength)
+        this.c5 = new Octree(
+            this.xLow + this.midX,
+            this.yLow,
+            this.zLow + this.midZ,
+            this.xHigh,
+            this.yLow + this.midY - this.unitLength,
+            this.zHigh,
+            this.unitLength,
+            this)
         this.c5.value = this.value
-        this.c6 = new Octree(this.xLow, this.midY + this.yLow, this.midZ + this.zLow, this.xLow + this.midX, this.yHigh, this.zHigh, this.unitLength)
+        this.c6 = new Octree(
+            this.xLow,
+            this.midY + this.yLow,
+            this.zLow + this.midZ,
+            this.xLow + this.midX - this.unitLength,
+            this.yHigh,
+            this.zHigh,
+            this.unitLength,
+            this)
         this.c6.value = this.value
-        this.c7 = new Octree(this.xLow + this.midX, this.yLow + this.midY, this.zLow + this.midZ, this.xHigh, this.yHigh, this.zHigh, this.unitLength)
+        this.c7 = new Octree(
+            this.midX + this.xLow,
+            this.midY + this.yLow,
+            this.zLow + this.midZ,
+            this.xHigh,
+            this.yHigh,
+            this.zHigh,
+            this.unitLength,
+            this)
         this.c7.value = this.value
         this.isLeafNode = false
         this.value = undefined
@@ -233,8 +311,6 @@ export class Octree<E extends Comparable<E>> {
             this.decompressNode()
         }
         let Quadrant = this.getOctant(point)
-        console.log("Point: " + point.toPrint())
-        console.log("Quadrant: " + Quadrant)
         // console.log("Is termination node")
         // console.log(Math.abs(this.yHigh - this.yLow), Math.abs(this.xHigh - this.xLow), Math.abs(this.zHigh - this.zLow))
         if (Math.abs(this.yHigh - this.yLow) === this.unitLength && Math.abs(this.xHigh - this.xLow) === this.unitLength && Math.abs(this.zHigh - this.zLow) === this.unitLength) {
@@ -274,105 +350,106 @@ export class Octree<E extends Comparable<E>> {
         } else if (Quadrant === 0) {
             if (this.c0 === undefined) {
                 this.c0 = new Octree(
-                    this.xLow, 
-                    this.yLow, 
-                    this.zLow, 
-                    this.xLow + this.midX - this.unitLength, 
-                    this.yLow + this.midY - this.unitLength, 
-                    this.zLow + this.midZ - this.unitLength, 
-                    this.unitLength)
+                    this.xLow,
+                    this.yLow,
+                    this.zLow,
+                    this.xLow + this.midX - this.unitLength,
+                    this.yLow + this.midY - this.unitLength,
+                    this.zLow + this.midZ - this.unitLength,
+                    this.unitLength, this)
             }
             (this.c0 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 1) {
             if (this.c1 === undefined) {
                 // Shift one over to the right on the x-axis
                 this.c1 = new Octree(
-                    this.xLow + this.midX, 
-                    this.yLow, 
-                    this.zLow, 
-                    this.xHigh, 
-                    this.yLow + this.midY - this.unitLength, 
-                    this.zLow + this.midZ - this.unitLength, 
-                    this.unitLength)
+                    this.xLow + this.midX,
+                    this.yLow,
+                    this.zLow,
+                    this.xHigh,
+                    this.yLow + this.midY - this.unitLength,
+                    this.zLow + this.midZ - this.unitLength,
+                    this.unitLength, this)
             }
             (this.c1 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 2) {
             if (this.c2 === undefined) {
                 // Shift one up on the y-axis.
                 this.c2 = new Octree(
-                    this.xLow, 
-                    this.midY + this.yLow, 
-                    this.zLow, 
-                    this.xLow + this.midX  - this.unitLength, 
-                    this.yHigh, 
-                    this.zLow + this.midZ  - this.unitLength, 
-                    this.unitLength)
+                    this.xLow,
+                    this.midY + this.yLow,
+                    this.zLow,
+                    this.xLow + this.midX - this.unitLength,
+                    this.yHigh,
+                    this.zLow + this.midZ - this.unitLength,
+                    this.unitLength, this)
             }
             (this.c2 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 3) {
             if (this.c3 === undefined) {
                 // shift on x and y axis
                 this.c3 = new Octree(
-                    this.midX + this.xLow, 
-                    this.midY + this.yLow, 
-                    this.zLow, 
-                    this.xHigh, 
-                    this.yHigh, 
-                    this.zLow + this.midZ  - this.unitLength, 
-                    this.unitLength
-                    )
+                    this.midX + this.xLow,
+                    this.midY + this.yLow,
+                    this.zLow,
+                    this.xHigh,
+                    this.yHigh,
+                    this.zLow + this.midZ - this.unitLength,
+                    this.unitLength, this
+                )
             }
             (this.c3 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 4) {
             if (this.c4 === undefined) {
                 // shift on z
                 this.c4 = new Octree(
-                    this.xLow, 
-                    this.yLow, 
-                    this.zLow + this.midZ, 
-                    this.xLow + this.midX  - this.unitLength, 
-                    this.yLow + this.midY  - this.unitLength, 
-                    this.zLow + this.midZ  - this.unitLength, 
-                    this.unitLength)
+                    this.xLow,
+                    this.yLow,
+                    this.zLow + this.midZ,
+                    this.xLow + this.midX - this.unitLength,
+                    this.yLow + this.midY - this.unitLength,
+                    this.zHigh,
+                    this.unitLength, this)
             }
             (this.c4 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 5) {
             if (this.c5 === undefined) {
                 this.c5 = new Octree(
-                    this.xLow + this.midX, 
-                    this.yLow, 
-                    this.zLow + this.midZ, 
-                    this.xHigh, 
-                    this.yLow + this.midY  - this.unitLength, 
-                    this.zHigh, 
-                    this.unitLength)
+                    this.xLow + this.midX,
+                    this.yLow,
+                    this.zLow + this.midZ,
+                    this.xHigh,
+                    this.yLow + this.midY - this.unitLength,
+                    this.zHigh,
+                    this.unitLength, this)
             }
             (this.c5 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 6) {
             if (this.c6 === undefined) {
                 this.c6 = new Octree(
-                    this.xLow, 
-                    this.midY + this.yLow, 
-                    this.zLow + this.midZ, 
-                    this.xLow + this.midX  - this.unitLength, 
-                    this.yHigh, 
-                    this.zHigh, 
-                    this.unitLength)
+                    this.xLow,
+                    this.midY + this.yLow,
+                    this.zLow + this.midZ,
+                    this.xLow + this.midX - this.unitLength,
+                    this.yHigh,
+                    this.zHigh,
+                    this.unitLength, this)
             }
             (this.c6 as Octree<E>).addCoordinate(point, value)
         } else if (Quadrant === 7) {
             if (this.c7 === undefined) {
                 this.c7 = new Octree(
-                    this.midX + this.xLow, 
-                    this.midY + this.yLow, 
-                    this.zLow + this.midZ, 
-                    this.xHigh, 
-                    this.yHigh, 
-                    this.zHigh, 
-                    this.unitLength)
+                    this.midX + this.xLow,
+                    this.midY + this.yLow,
+                    this.zLow + this.midZ,
+                    this.xHigh,
+                    this.yHigh,
+                    this.zHigh,
+                    this.unitLength, this)
             }
             (this.c7 as Octree<E>).addCoordinate(point, value)
         }
+        this.compressNode()
         this.nodeCount += 1
     }
 }
