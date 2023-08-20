@@ -315,6 +315,26 @@ export class Octree<E extends Comparable<E>> {
         this.c6.isLeafNode = true
         this.c7.isLeafNode = true
         this.quadCount = 8
+        this.c0.decompressNode()
+        this.c1.decompressNode()
+        this.c2.decompressNode()
+        this.c3.decompressNode()
+        this.c4.decompressNode()
+        this.c5.decompressNode()
+        this.c6.decompressNode()
+        this.c7.decompressNode()
+    }
+    reset() {
+        this.isLeafNode = true
+        this.c0 = undefined
+        this.c1 = undefined
+        this.c2 = undefined
+        this.c3 = undefined
+        this.c4 = undefined
+        this.c5 = undefined
+        this.c6 = undefined
+        this.c7 = undefined
+        this.quadCount = 0
     }
     addCoordinate(point: Point3D, value: E): void {
         // Find which octant this point falls in
