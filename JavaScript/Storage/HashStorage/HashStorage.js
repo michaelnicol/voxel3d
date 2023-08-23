@@ -1,5 +1,5 @@
-import { HashStorageNode } from "../../HashStorageNode.js";
-import { PointFactoryMethods } from "../../PointFactoryMethods.js";
+import { HashStorageNode } from "./HashStorageNode.js";
+import { PointFactoryMethods } from "../../Points/PointFactoryMethods.js";
 export class HashStorage {
     hashMap = new Map;
     uniqueCoordinateCount = 0;

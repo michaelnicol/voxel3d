@@ -5,9 +5,9 @@ import { TestStorageValue } from "../voxel3d/JavaScript/Storage/Octree/TestStora
 // tree.addCoordinate(new Point3D(0, 32, 0))
 // tree.addCoordinate(new Point3D(1, 1, 1))
 
-const x = 1
-const y = 1
-const z = 1
+const x = 5
+const y = 5
+const z = 5
 // for (let x = 0; x < 16; x++) {
 let tree = new Octree(0, 0, 0, Math.pow(2, x)-1, Math.pow(2, y)-1, Math.pow(2, z)-1, 1)
 // tree.addCoordinate(new Point3D(0,0,2), new TestStorageValue(0))

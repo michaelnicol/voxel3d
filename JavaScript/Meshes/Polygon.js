@@ -4,9 +4,8 @@
 // import { TreeStorage } from "../Storage/TreeStorage/TreeStorage.js";
 // import { Point } from "../Points/Point.js";
 // import { Point3D } from "../Points/Point3D.js";
-
+export {};
 // export type PolygonEdgeDirectory = Record<string, Point[]>
-
 // /**
 //  * Generates a 3D voxel polygon.
 //  * 
@@ -27,5 +26,4 @@
 //             this.vertices.push(vertices[i].clone())
 //         }
 //     }
-    
 // }

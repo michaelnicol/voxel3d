@@ -1,4 +1,4 @@
-import { AVLTree } from "../AVLTree.js";
+import { AVLTree } from "../AVL/AVLTree.js";
 import { TreeStorageNodeComparator } from "./TreeStorageNodeComparator.js";
 export class TreeStorageNode {
     coordinateDate = 0;

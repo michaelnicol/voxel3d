@@ -1,7 +1,7 @@
 import { TreeStorageNode } from "./TreeStorageNode.js";
-import { AVLTree } from "../AVLTree.js";
+import { AVLTree } from "../AVL/AVLTree.js";
 import { TreeStorageNodeComparator } from "./TreeStorageNodeComparator.js";
-import { PointFactoryMethods } from "../../PointFactoryMethods.js";
+import { PointFactoryMethods } from "../../Points/PointFactoryMethods.js";
 export class TreeStorage {
     allCoordinateCount = 0;
     uniqueCoordinateCount = 0;
