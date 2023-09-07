@@ -1,6 +1,7 @@
 import { Comparable } from "../../Interfaces/Comparable.js";
 import { Point3D } from "../../Points/Point3D.js";
 import { ValidObject } from "../../Meshes/ValidObject.js";
+import { Triangle3D } from "../../Meshes/Triangle3D.js";
 
 export class OctreeLeaf<E extends Comparable<E>> {
     value!: E
@@ -528,5 +529,8 @@ export class Octree<E extends Comparable<E>> {
                 callback(this.c7)
             }
         }
+    }
+    doesTriangleIntersect(polygon: Triangle3D<E>): boolean {
+      
     }
 }
